@@ -1,0 +1,12 @@
+Package: qchlorophyll
+Type: Package
+Title: Chlorophyll data
+Version: 0.1
+Date: 2016-05-06
+Author: Michy Alice
+Maintainer: Michy Alice <michy.alice@quantide.com>
+Description: A package for manipulating and summarizing chlorophyll data
+Imports:
+    netcdf
+License: GPL 3
+LazyData: TRUE
