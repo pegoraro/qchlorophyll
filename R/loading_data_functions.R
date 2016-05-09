@@ -48,10 +48,10 @@ load_nc_file <- function(file_path, current_date, variables = c("CHL1_mean"), co
     # Retrieving data
     ###################
 
-    # This function extracts the var variable from the .nc file
-    load_data_from_nc <- function(var, ...){ get.var.ncdf(nc, var) }
     # Open file
     nc <- open.ncdf(file_path)
+    # This function extracts the var variable from the .nc file
+    load_data_from_nc <- function(var, ...){ get.var.ncdf(nc, var) }
     # Load variables into a list
     raw_data <- lapply(variables_to_get, load_data_from_nc)
     # Set names for each variable
