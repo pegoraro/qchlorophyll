@@ -15,8 +15,11 @@ load_observations <- function(path, from, to = NULL, vars = NULL)
     # Function 1. Parse the date window.
     # Function 2. Get the list of files to load and the list of dates for each file
     # Use load_nc_file on each file.
-    # Function 3. Stack everything together in a single df or return a list of loaded files.
-    # Function 4. Checks?
+
+    # Return a list of loaded files as dataframes.
+    # or return a single stacked dataframe?
+
+    ### Function 4. Checks?
 }
 
 ################################################################################
@@ -51,7 +54,7 @@ load_nc_file <- function(file_path, current_date, variables = c("CHL1_mean"), co
     # Open file
     nc <- open.ncdf(file_path)
     # This function extracts the var variable from the .nc file
-    load_data_from_nc <- function(var, ...){ get.var.ncdf(nc, var) }
+    load_data_from_nc <- function(var) get.var.ncdf(nc, var)
     # Load variables into a list
     raw_data <- lapply(variables_to_get, load_data_from_nc)
     # Set names for each variable
@@ -110,9 +113,9 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     # Melt variables into a single dataframe.
     #
     # Note: variables (measurements) are retrieved as 60*92 matrices
-    # Fun melts each 60x92 matrix into a dataframe.
+    # fun melts each 60x92 matrix into a dataframe.
     # Then the dataframes are binded by column
-    fun <-function(x){ data.frame(as.vector(t(x), mode = "numeric")) }
+    fun <-function(x) data.frame(as.vector(t(x), mode = "numeric"))
     var_data <- lapply(raw_data[variables], fun)
     var_df <- do.call(cbind, var_data)
     names(var_df) <- variables
@@ -146,4 +149,4 @@ file_test <- "L3m_19980125-19980201__589791848_25_GSM-SWF_CHL1_8D_00.nc"
 date_test <- ymd("19980125")
 file2 <- load_nc_file(file_path = file_test, current_date = date_test ,variables = c("CHL1_mean"))
 # TEST
-sum(file != file2,na.rm = T)
+#sum(file != file2, na.rm = T)
