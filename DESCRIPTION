@@ -7,8 +7,9 @@ Author: Michy Alice
 Maintainer: Michy Alice <michy.alice@quantide.com>
 Description: Package for geographical chlorophyll analysis
 Imports:
-    netcdf,
+    ncdf,
     dplyr,
     lubridate
 License: GPL 3
 LazyData: TRUE
+RoxygenNote: 5.0.1

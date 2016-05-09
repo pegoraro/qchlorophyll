@@ -1,25 +1,26 @@
 ################################################################################
-#' Load a bunch of .nc file given a time-window
+#' Load a bunch of .nc files in a local path
 #'
-#' Work in progress
-#'
-#' @param
-#' @importFrom
-#' @return
+#' @param path Path where to .nc files are located. Eg: /home/data
+#' @param variables variables to be retrieved from the file. A character vector of length n.
+#' @param coordinates longitude and latitude
+#' @return A list of all the .nc files loaded
 #' @examples
 #'
 #' @export
 #'
-load_observations <- function(path, from, to = NULL, vars = NULL)
+load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), date_format = "ymd")
 {
-    # Function 1. Parse the date window.
-    # Function 2. Get the list of files to load and the list of dates for each file
-    # Use load_nc_file on each file.
-
-    # Return a list of loaded files as dataframes.
-    # or return a single stacked dataframe?
-
-    ### Function 4. Checks?
+    # Elenca i file nel percorso
+    file_names <- list.files(path = path)
+    # Genera il percorso al singolo file (cfr utils.R)
+    nc_files_path <- sapply(file_names, make_path, path = path)
+    # Custom loading function. Potrebbe essere messo nel lapply evitando la definizione della funzione
+    loading_function <- function(file){ load_nc_file(file, variables = variables, coordinates = coordinates, date_format = date_format) }
+    # Carica tutti i file in una singola lista
+    nc_files <- lapply(nc_files_path, loading_function)
+    # Ritorna la lista di tutti i file caricati
+    return(nc_files)
 }
 
 ################################################################################
@@ -29,40 +30,36 @@ load_observations <- function(path, from, to = NULL, vars = NULL)
 #' @param current_date the date of the observations. A lubridate object
 #' @param variables variables to be retrieved from the file. A character vector of length n.
 #' @param coordinates longitude and latitude
-#' @importFrom dplyr mutate, bind_cols, tbl_df
-#' @importFrom lubridate day, month, year, ymd
-#' @importFrom ncdf open.ncdf, get.var.ncdf, close.ncdf
+#' @importFrom ncdf open.ncdf get.var.ncdf close.ncdf
 #' @return A dplyr dataframe
 #' @examples
 #'
 #' @export
 #'
-#' # NOTE: Probabilmente le current_date sono gia' incluse nel file. Si possono recuperare da quello.
-#'
-load_nc_file <- function(file_path, current_date, variables = c("CHL1_mean"), coordinates = c("lon", "lat"))
+load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), date_format = "ymd")
 {
-
     # Variabili totali recuperare.
-    # Note: se assumiamo che lui lavori sempre su immagini satellitari uguali.
-    # Lat e lon ci son sempre e potrei toglierle da variables
     variables_to_get <- c(coordinates, variables)
 
     ###################
     # Retrieving data
     ###################
 
+    # Extract current date (cfr utils.R)
+    current_date <- extract_date_from_filepath(file_path, date_format = date_format)
+    print(current_date)
+
     # Open file
-    nc <- open.ncdf(file_path)
-    # This function extracts the var variable from the .nc file
-    load_data_from_nc <- function(var) get.var.ncdf(nc, var)
-    # Load variables into a list
-    raw_data <- lapply(variables_to_get, load_data_from_nc)
+    nc_file <- open.ncdf(file_path)
+    # Load variables into a list. (cfr utils.R)
+    # Memo: after FUN, in lapply, arguments are passed to FUN
+    raw_data <- lapply(variables_to_get, load_data_from_nc, nc = nc_file)
     # Set names for each variable
     names(raw_data) <- variables_to_get
     # Close file
-    close.ncdf(nc)
+    close.ncdf(nc_file)
 
-    # Reshape data. Basically melt everything in a single dplyr dataframe.
+    # Reshape data. Basically: melt everything in a single dplyr dataframe.
     # Notes: each pixel is uniquely identified by latitude and longitude. For
     # each pixel a single measurement is performed.
     # e.g.
@@ -90,18 +87,17 @@ load_nc_file <- function(file_path, current_date, variables = c("CHL1_mean"), co
 #' @param raw_data raw data extracted using load_nc_file. A list.
 #' @param expand_variables variables to be used as x and y reference of the image. These variables must be included in the raw_data list.
 #' @param current_date The date of the observation.
-#' @importFrom lubridate day, month, year
-#' @importFrom dplyr mutate, %>%, bind_cols, tbl_df
+#' @importFrom lubridate day month year yday
+#' @importFrom dplyr mutate bind_cols tbl_df
 #' @return A dplyr dataframe
 #' @examples
 #'
 #' @export
 #'
-## Note: Stesso discorso per lat e lon. In particolare qui il reshape avverrebbe sempre su lat e lon
 reshape_data <- function(raw_data, variables, expand_variables, current_date)
 {
     ####################################
-    # Reshaping
+    # Reshaping.
     ####################################
 
     # Expand coordinates (lon and lat)
@@ -115,7 +111,9 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     # Note: variables (measurements) are retrieved as 60*92 matrices
     # fun melts each 60x92 matrix into a dataframe.
     # Then the dataframes are binded by column
-    fun <-function(x) data.frame(as.vector(t(x), mode = "numeric"))
+    #
+    # TidyR?
+    fun <- function(x) data.frame(as.vector(t(x), mode = "numeric"))
     var_data <- lapply(raw_data[variables], fun)
     var_df <- do.call(cbind, var_data)
     names(var_df) <- variables
@@ -124,8 +122,7 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     data <- data %>%
         mutate(date = current_date) %>%
         bind_cols(var_df) %>%
-        mutate(id.pixel = row_number(),
-               #id.date <- as.POSIXlt(date)$yday, # Days from the beginning of the year
+        mutate(id.date = yday(date), # Julian date. CHECK! differs from posixlt()$yday
                month = month(date),
                year = year(date))
 
@@ -133,20 +130,8 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
 }
 
 
-#-------------------------------------------------------------------------------
-setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/CHL_8D")
-library(ncdf)
-library(lubridate)
-library(dplyr)
-
-# OLD
-#file <- caricafile()
-#file <- reshape_picture(file)
-#head(file)
-
-# NEW
-file_test <- "L3m_19980125-19980201__589791848_25_GSM-SWF_CHL1_8D_00.nc"
-date_test <- ymd("19980125")
-file2 <- load_nc_file(file_path = file_test, current_date = date_test ,variables = c("CHL1_mean"))
-# TEST
-#sum(file != file2, na.rm = T)
+# #-------------------------------------------------------------------------------
+## TEST: LOAD the first x files in the path getwd()/aaa
+#setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/CHL_8D")
+#cwd <- paste(getwd(), "aaa" ,sep="/")
+#ddd <- load_all(cwd)
