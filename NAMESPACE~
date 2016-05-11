@@ -2,7 +2,7 @@
 
 export(extract_date_from_filepath)
 export(load_all)
-export(load_variable_from_nc)
+export(load_data_from_nc)
 export(load_nc_file)
 export(make_path)
 export(reshape_data)

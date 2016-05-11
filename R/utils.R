@@ -1,99 +1,97 @@
 ################################################################################
-#' Extract variables from a .nc file
+#' Extract a single variable from a .nc file
 #'
-#' @param var variable to be extracted
-#' @param nc file with extension nc
+#' This function extracts the variable var from a given nc file.
+#'
+#' @param variable variable to be extracted. Character.
+#' @param nc file with nc extension
 #' @importFrom ncdf get.var.ncdf
-#' @return The requested variable
+#' @return The requested variable. Data structure depends on which variable is recovered.
 #' @export
 #'
-load_data_from_nc <- function(var, nc)
+load_variable_from_nc <- function(variable, nc)
 {
-    get.var.ncdf(nc, var)
+    get.var.ncdf(nc, variable)
 }
 
 ################################################################################
 #' Make path function
 #'
-#' Work in progress.
+#' Given a path to a folder and the name of a file in that folder, this function
+#' builds the path to that file.
 #'
-#' @param filename name of the file
-#' @param  path path to folder
-#' @return full path to a file
+#' Example:
+#' path = "/home/user/date"
+#' filename = "data.txt"
+#' Return = "/home/user/date/data.txt"
+#'
+#' @param file_name name of the file. Character
+#' @param  path path to folder. Character
+#' @return full path to a file. Character
 #' @export
 #'
-make_path <- function(filename, path)
+make_path <- function(file_name, path)
 {
-    paste(path, filename, sep = "/" )
+    paste(path, file_name, sep = "/" )
 }
+
+# #' Select .nc files only in the current path
+# #'
+# #' @param file_name name of the file. Character
+# #' @param  path path to folder. Character
+# #' @return full path to a file. Character
+# #' @export
+# #' Da sistemare
+# select_nc_files_only <- function(file_name)
+# {
+#     file_name_filtered <- regmatches(file_name, gregexpr(".*.nc$", file_name))[[1]]
+#     if( length(file_name_filtered) == 0 )
+#     {
+#         return(NULL)
+#     }else{
+#         return(file_name_filtered)
+#     }
+# }
 
 ################################################################################
 #' Extract date from filepath
 #'
+#' This function extracts a date from a full path to a file. The date is assumed to
+#' be in the name of the file.
+#'
 #' Assumptions:
-#' 1. Date is in the following format: dddddddd where d is an integer.
-#' 2. Date is the first 8 digits matched in the filename.
+#' 1. Date is in the name of the file.
+#' 2. Date is in the following format: dddddddd where d is an integer.
+#' 3. Date is the first 8 digits matched in the filename. Optionally you can set this to
+#' be the ith match by setting the match_position parameter to i. See notes below.
+#'
+#' Example:
+#' path = "/home/user/data/file1_20150202_312314342_20150802.nc"
+#' date_format = "ymd"
+#' Returns "20150202"
 #'
 #' Notes:
-#' Date format can be set
+#' 1. Note that the function by default returns the first 8 digits sequence it encounters in the filename
+#' (starting left to right). The argument match_position can be used to access other
+#' dates. For instance match_position = 2 matches the second date (or, better, 8 digits sequence)
+#' it finds.
+#' 2. Note that date format can be set (should it vary).
+#' 3. If the date_format is not correct a NA is returned
 #'
-#' @param path path to file
-#' @param date_format Date format. Should match a lubridate
+#' @param path path to file. Character
+#' @param date_format Date format. Should match a lubridate standard format. Character
 #' @importFrom lubridate parse_date_time
-#' @return full path to a file
+#' @return an object of class Date.
 #' @export
 #'
-extract_date_from_filepath <- function(path, date_format = "ymd")
+extract_date_from_filepath <- function(path, date_format = "ymd", match_position = 1)
 {
     # Splits the path and gets the filename (last string character in the path)
     file_name <- strsplit(path, "/")[[1]][length(strsplit(path, "/")[[1]])]
     # Matches a regex for a date in the filename
-    file_date <- regmatches(file_name, gregexpr("[0-9]{8}", file_name))[[1]][1]
+    file_date <- regmatches(file_name, gregexpr("[0-9]{8}", file_name))[[1]][match_position]
     # Parses the date
     file_date_lubridate <- parse_date_time(file_date, date_format)
     # Return
-    file_date_lubridate
+    return(file_date_lubridate)
 }
-
-
-# library(stringr)
-# library(lubridate)
-#
-# ################################################################################
-# # Parameters
-# ################################################################################
-# path <- "/home/mich/quantide/packages_R/qchlorophyll_/dati/CHL_8D/"
-# #selected_date_from
-# selected_date <- "1998-02-25"
-# #selected_date_to <- "fsdfsd"
-# date_format <- "ymd"
-#
-# # Parse the selected date according to the selected format
-# current_date <- parse_date_time(selected_date, date_format)
-# # Get the appropriate
-# date_fun <- match.fun(date_format)
-#
-# # List files in the selected path
-# a <-list.files(path = path)
-# # This fun extracts the dates
-#
-# ### Option 1. Parameters: start and end. (A vector)
-# fun <- function(x) str_sub(x, start = 5, end = 12)
-# ### Option 2. Parameters: regex to find
-# #fun <- function(x) regmatches(x, gregexpr("[0-9]{8}",ll))[[1]][1]
-#
-# # Apply the function to each file to extract dates
-# b <- sapply(a, fun)
-# # Apply to each date the ymd function
-# d <- sapply(b, ymd)
-#
-# ## New function.
-# # This function gets the d vector and selects the files.
-#
-# # Get  dates between the interval indicated. To fix.
-# e <- d[d < current_date]
-# length(e)
-# e
-# # Filenames are the names of the vector e
-# filestoget <- names(e)
-# filestoget
