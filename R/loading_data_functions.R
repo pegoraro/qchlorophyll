@@ -4,6 +4,9 @@
 #' @param path Path where to .nc files are located. Eg: /home/data. Character.
 #' @param variables variables to be retrieved from the file. A character vector of length n.
 #' @param coordinates Grid variables (for instance, longitude and latitude).
+#' @param date_match_position An integer. If the name of each file contains one or more dates, chose which one will be used as the
+#' current date for the file. Example: if a file is named "20150202file2_20150706.nc", if date_match_position is set
+#' to 1 (default), the first date, 20150202 will be used. If you'd like to use the second one, set the parameter to 2.
 #' @return A list of all the .nc files loaded
 #' @examples
 #' # Load all .nc files in /home/data, extract the variable "CHL1_mean" and use longitude and latitude to uniquely identify each observation
@@ -11,7 +14,7 @@
 #'
 #' @export
 #'
-load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), date_format = "ymd")
+load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), date_format = "ymd", date_match_position = 1)
 {
     # List files in the given path
     file_names <- list.files(path = path)
@@ -24,14 +27,14 @@ load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "l
 
     # Custom loading function. Potrebbe essere messo nel lapply evitando la definizione della funzione, volendo.
     # Ma forse è più chiaro cosi'.
-    loading_function <- function(file){ load_nc_file(file, variables = variables, coordinates = coordinates, date_format = date_format) }
+    loading_function <- function(file){ load_nc_file(file, variables = variables, coordinates = coordinates, date_format = date_format, date_match_position = date_match_position) }
 
     # Carica tutti i file in una singola lista.
     # Ogni elemento della lista contiene un dataframe dplyr
     nc_files <- lapply(nc_files_path, loading_function)
 
     # Assign id and bind rows together
-    output <- assign_id_and_melt(nc_files)
+    output <- assign_id_and_melt(nc_files, coordinates = coordinates)
 
     # Ritorna la lista di tutti i file caricati
     return(output)
@@ -46,6 +49,9 @@ load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "l
 #' @param variables variables to be retrieved from the file. A character vector of length n.
 #' @param coordinates longitude and latitude
 #' @param date_format the format of the dates for each file.
+#' @param date_match_position An integer. If the name of each file contains one or more dates, chose which one will be used as the
+#' current date for the file. Example: if a file is named "20150202file2_20150706.nc", if date_match_position is set
+#' to 1 (default), the first date, 20150202 will be used. If you'd like to use the second one, set the parameter to 2.
 #' @importFrom ncdf open.ncdf get.var.ncdf close.ncdf
 #' @return A dplyr dataframe
 #' @examples
@@ -53,7 +59,7 @@ load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "l
 #' # data_02022015 <- load_nc_file("~path/data02022015.nc", date_format = "dmy")
 #' @export
 #'
-load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), date_format = "ymd")
+load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), date_format = "ymd", date_match_position = 1)
 {
     # Total variables to retrieve
     variables_to_get <- c(coordinates, variables)
@@ -63,7 +69,9 @@ load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c(
     ###################
 
     # Extract current date from filepath(cfr utils.R)
-    current_date <- extract_date_from_filepath(file_path, date_format = date_format)
+    current_date <- extract_date_from_filepath(file_path,
+                                               date_format = date_format,
+                                               date_match_position = date_match_position)
     print(current_date)
 
     # Open file
@@ -123,7 +131,7 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     data_grid <- raw_data[expand_variables] %>% expand.grid()
 
     # Convert data.frame object to a tbl_df
-    data_grid <- tbl_df(data)
+    data_grid <- tbl_df(data_grid)
 
     # Melt variables into a single dataframe.
     #
@@ -133,7 +141,7 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     #
     # TidyR?
     fun <- function(x) data.frame(as.vector((x), mode = "numeric"))
-    variable_data <- lapply(raw_data[variables], fun)
+    variables_data <- lapply(raw_data[variables], fun)
     variables_df <- do.call(cbind, variables_data)
     names(variables_df) <- variables
 
@@ -162,33 +170,21 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
 #'
 #' @export
 #'
-assign_id_and_melt <- function(data_list)
+assign_id_and_melt <- function(data_list, coordinates)
 {
+
     # Bind all rows in a single dataframe
     data <- data_list %>% rbind_all()
     # Calculate id.pixel
-    id <- data %>% select(lat,lon) %>% unique() %>% mutate(id.pixel = row_number())
+    id <- data %>% select_(coordinates[2], coordinates[1]) %>% unique() %>% mutate(id.pixel = row_number())
     # Add id.pixel
     data <- full_join(id, data)
 
     return(data)
 }
 
-# Test
-# b <- Sys.time()
-rm(list=ls())
-setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/CHL_8D/")
-provola <- load_all(getwd())
-sum(provola$lat != DBA$lat, na.rm =T)
-sum(provola$lon != DBA$lon, na.rm =T)
-sum(provola$CHL1_mean != DBA$chl, na.rm =T)
-sum(provola$id.pixel != DBA$id.pixel, na.rm =T)
-sum(provola$id.date != DBA$id.date, na.rm =T)
-sum(provola$month != DBA$month, na.rm =T)
-sum(provola$day != DBA$day, na.rm =T)
-
 # #-------------------------------------------------------------------------------
 # Note:
 #sistemare la questione lon, longitude nella funzione utils per caricare nc files.
 #dare la possibilità di scegliere la finestra di date dei file da caricare
-#fare in modo, editando la regex, che la lista dei file nel path contenga solo file con estensione .nc
+#fare in modo, editando una regex, che la lista dei file nel path contenga solo file con estensione .nc

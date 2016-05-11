@@ -35,24 +35,6 @@ make_path <- function(file_name, path)
     paste(path, file_name, sep = "/" )
 }
 
-# #' Select .nc files only in the current path
-# #'
-# #' @param file_name name of the file. Character
-# #' @param  path path to folder. Character
-# #' @return full path to a file. Character
-# #' @export
-# #' Da sistemare
-# select_nc_files_only <- function(file_name)
-# {
-#     file_name_filtered <- regmatches(file_name, gregexpr(".*.nc$", file_name))[[1]]
-#     if( length(file_name_filtered) == 0 )
-#     {
-#         return(NULL)
-#     }else{
-#         return(file_name_filtered)
-#     }
-# }
-
 ################################################################################
 #' Extract date from filepath
 #'
@@ -80,18 +62,37 @@ make_path <- function(file_name, path)
 #'
 #' @param path path to file. Character
 #' @param date_format Date format. Should match a lubridate standard format. Character
+#' @param date_match_position See notes above.
 #' @importFrom lubridate parse_date_time
 #' @return an object of class Date.
 #' @export
 #'
-extract_date_from_filepath <- function(path, date_format = "ymd", match_position = 1)
+extract_date_from_filepath <- function(path, date_format = "ymd", date_match_position = 1)
 {
     # Splits the path and gets the filename (last string character in the path)
     file_name <- strsplit(path, "/")[[1]][length(strsplit(path, "/")[[1]])]
     # Matches a regex for a date in the filename
-    file_date <- regmatches(file_name, gregexpr("[0-9]{8}", file_name))[[1]][match_position]
+    file_date <- regmatches(file_name, gregexpr("[0-9]{8}", file_name))[[1]][date_match_position]
     # Parses the date
     file_date_lubridate <- parse_date_time(file_date, date_format)
     # Return
     return(file_date_lubridate)
 }
+
+# #' Select .nc files only in the current path
+# #'
+# #' @param file_name name of the file. Character
+# #' @param  path path to folder. Character
+# #' @return full path to a file. Character
+# #' @export
+# #' Da sistemare
+# select_nc_files_only <- function(file_name)
+# {
+#     file_name_filtered <- regmatches(file_name, gregexpr(".*.nc$", file_name))[[1]]
+#     if( length(file_name_filtered) == 0 )
+#     {
+#         return(NULL)
+#     }else{
+#         return(file_name_filtered)
+#     }
+# }
