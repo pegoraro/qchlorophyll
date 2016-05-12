@@ -4,7 +4,7 @@
 #' This function extracts the variable var from a given nc file.
 #'
 #' @param variable variable to be extracted. Character.
-#' @param nc file with nc extension
+#' @param nc file with .nc extension
 #' @importFrom ncdf get.var.ncdf
 #' @return The requested variable. Data structure depends on which variable is recovered.
 #' @export
@@ -79,20 +79,26 @@ extract_date_from_filepath <- function(path, date_format = "ymd", date_match_pos
     return(file_date_lubridate)
 }
 
-# #' Select .nc files only in the current path
-# #'
-# #' @param file_name name of the file. Character
-# #' @param  path path to folder. Character
-# #' @return full path to a file. Character
-# #' @export
-# #' Da sistemare
-# select_nc_files_only <- function(file_name)
-# {
-#     file_name_filtered <- regmatches(file_name, gregexpr(".*.nc$", file_name))[[1]]
-#     if( length(file_name_filtered) == 0 )
-#     {
-#         return(NULL)
-#     }else{
-#         return(file_name_filtered)
-#     }
-# }
+#' Check existence of a variable inside a given .nc file.
+#' If the variable does not exist, use the replacement one.
+#'
+#' @param nc file with extension .nc already loaded in the R environment.
+#' @param coordinates
+#' @param spare_coordinates
+#' @return
+#' @export
+#'
+fix_coordinates <- function(nc, coordinates, spare_coordinates)
+{
+    # Check existence of coordinates. Returns boolean vector
+    condition_1 <- sapply(coordinates, function(x) exists(x, get("dim", nc)), USE.NAMES = F)
+    # Check existance of spare_coordinates. Returns boolean vector
+    condition_2 <- sapply(spare_coordinates, function(x) exists(x, get("dim", nc)), USE.NAMES = F)
+    # Select coordinates names according to their existance inside the .nc file
+    existing_coordinates <- c(coordinates[condition_1], coordinates[condition_2])
+    #print(condition_1)
+    #print(condition_2)
+    #print(existing_coordinates)
+
+    return(existing_coordinates)
+}

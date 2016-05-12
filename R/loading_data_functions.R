@@ -4,9 +4,11 @@
 #' @param path Path where to .nc files are located. Eg: /home/data. Character.
 #' @param variables variables to be retrieved from the file. A character vector of length n.
 #' @param coordinates Grid variables (for instance, longitude and latitude).
+#' @param spare_coordinates Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
+#' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates.
 #' @param date_match_position An integer. If the name of each file contains one or more dates, chose which one will be used as the
 #' current date for the file. Example: if a file is named "20150202file2_20150706.nc", if date_match_position is set
-#' to 1 (default), the first date, 20150202 will be used. If you'd like to use the second one, set the parameter to 2.
+#' to 1 (default), the first date, 20150202 will be used. If you'd like to use the second one, set the parameter to 2 and so on.
 #' @return A list of all the .nc files loaded
 #' @examples
 #' # Load all .nc files in /home/data, extract the variable "CHL1_mean" and use longitude and latitude to uniquely identify each observation
@@ -14,20 +16,25 @@
 #'
 #' @export
 #'
-load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), date_format = "ymd", date_match_position = 1)
+load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), date_format = "ymd", date_match_position = 1)
 {
-    # List files in the given path
-    file_names <- list.files(path = path)
+    # List files with extension .nc in the given path
+    file_names <- list.files(path = path, pattern = "\\.nc$")
 
-    # Seleziona solo i file con estensione .nc
-    # Funzione che fa quel lavoro ()
+    # Seleziona solo i file nell'intervallo di date
+    # Fun
 
     # Genera il percorso al singolo file (cfr utils.R)
     nc_files_path <- sapply(file_names, make_path, path = path)
 
     # Custom loading function. Potrebbe essere messo nel lapply evitando la definizione della funzione, volendo.
     # Ma forse è più chiaro cosi'.
-    loading_function <- function(file){ load_nc_file(file, variables = variables, coordinates = coordinates, date_format = date_format, date_match_position = date_match_position) }
+    loading_function <- function(file){ load_nc_file(file,
+                                                     variables = variables,
+                                                     coordinates = coordinates,
+                                                     spare_coordinates = spare_coordinates,
+                                                     date_format = date_format,
+                                                     date_match_position = date_match_position) }
 
     # Carica tutti i file in una singola lista.
     # Ogni elemento della lista contiene un dataframe dplyr
@@ -48,6 +55,8 @@ load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "l
 #' @param file_path the path of the file to load. Character.
 #' @param variables variables to be retrieved from the file. A character vector of length n.
 #' @param coordinates longitude and latitude
+#' @param spare_coordinates Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
+#' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates.
 #' @param date_format the format of the dates for each file.
 #' @param date_match_position An integer. If the name of each file contains one or more dates, chose which one will be used as the
 #' current date for the file. Example: if a file is named "20150202file2_20150706.nc", if date_match_position is set
@@ -59,11 +68,8 @@ load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "l
 #' # data_02022015 <- load_nc_file("~path/data02022015.nc", date_format = "dmy")
 #' @export
 #'
-load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), date_format = "ymd", date_match_position = 1)
+load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), date_format = "ymd", date_match_position = 1)
 {
-    # Total variables to retrieve
-    variables_to_get <- c(coordinates, variables)
-
     ###################
     # Retrieving data
     ###################
@@ -76,6 +82,12 @@ load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c(
 
     # Open file
     current_nc_file <- open.ncdf(file_path)
+
+    # Check existance of coordinates and replace them with spare ones if needed.
+    coordinates <- fix_coordinates(nc = current_nc_file, coordinates = coordinates, spare_coordinates = spare_coordinates)
+
+    # Total variables to retrieve
+    variables_to_get <- c(coordinates, variables)
 
     # Load each variable into a list. (cfr utils.R)             # Memo: after FUN, in lapply, arguments are passed to FUN
     raw_data <- lapply(variables_to_get, load_variable_from_nc, nc = current_nc_file)
@@ -146,12 +158,17 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     names(variables_df) <- variables
 
     # Assign variables to a reshaped
+    # Note: lubridate::yday() ritorna giorno dell'anno 1-366. Sostituito a as.POSIXlt(date)$yday che ritorna il giorno dell'anno 0-365
+    # (ecco da dove spunta il - 1). Si potrebbe anche togliere. Attendo conferma. Fonti:
+    # https://stat.ethz.ch/R-manual/R-devel/library/base/html/DateTimeClasses.html
+    # http://www.inside-r.org/packages/cran/lubridate/docs/yday
+    #
     reshaped_data <- data_grid %>%
         mutate(date = current_date) %>%
         bind_cols(variables_df) %>%
         mutate(
                #id.pixel = row_number(),
-               id.date = yday(date) - 1, # Julian date. CHECK! differs from posixlt()$yday hence the -1
+               id.date = yday(date) - 1,
                month = month(date),
                year = year(date))
 
@@ -185,6 +202,4 @@ assign_id_and_melt <- function(data_list, coordinates)
 
 # #-------------------------------------------------------------------------------
 # Note:
-#sistemare la questione lon, longitude nella funzione utils per caricare nc files.
 #dare la possibilità di scegliere la finestra di date dei file da caricare
-#fare in modo, editando una regex, che la lista dei file nel path contenga solo file con estensione .nc
