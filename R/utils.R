@@ -79,13 +79,15 @@ extract_date_from_filepath <- function(path, date_format = "ymd", date_match_pos
     return(file_date_lubridate)
 }
 
+################################################################################
 #' Check existence of a variable inside a given .nc file.
 #' If the variable does not exist, use the replacement one.
 #'
 #' @param nc file with extension .nc already loaded in the R environment.
-#' @param coordinates
-#' @param spare_coordinates
-#' @return
+#' @param coordinates Grid variables (for instance, longitude and latitude).
+#' @param spare_coordinates Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
+#' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates.
+#' @return Returns existing coordinates (either coordinates or spare_coordinates)
 #' @export
 #'
 fix_coordinates <- function(nc, coordinates, spare_coordinates)

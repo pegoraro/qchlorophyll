@@ -9,14 +9,16 @@
 #' @param date_match_position An integer. If the name of each file contains one or more dates, chose which one will be used as the
 #' current date for the file. Example: if a file is named "20150202file2_20150706.nc", if date_match_position is set
 #' to 1 (default), the first date, 20150202 will be used. If you'd like to use the second one, set the parameter to 2 and so on.
+#' @param date_format date format. By default it is set to be "ymd" (year, month, day). This is the format of the date in each
+#' filename. It can be set to other values such as "dmy" and "mdy". Check lubridate's package help for more information.
 #' @return A list of all the .nc files loaded
 #' @examples
 #' # Load all .nc files in /home/data, extract the variable "CHL1_mean" and use longitude and latitude to uniquely identify each observation
-#' # loaded_files_list <- load_all(path = /home/data, variables = c("CHL1_mean"), coordinates = c("lon","lat"))
+#' # loaded_files_list <- load_all_as_list(path = /home/data, variables = c("CHL1_mean"), coordinates = c("lon","lat"))
 #'
 #' @export
 #'
-load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), date_format = "ymd", date_match_position = 1)
+load_all_as_list <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), date_format = "ymd", date_match_position = 1)
 {
     # List files with extension .nc in the given path
     file_names <- list.files(path = path, pattern = "\\.nc$")
@@ -40,11 +42,8 @@ load_all <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "l
     # Ogni elemento della lista contiene un dataframe dplyr
     nc_files <- lapply(nc_files_path, loading_function)
 
-    # Assign id and bind rows together
-    output <- assign_id_and_melt(nc_files, coordinates = coordinates)
-
     # Ritorna la lista di tutti i file caricati
-    return(output)
+    return(nc_files)
 }
 
 ################################################################################
@@ -124,6 +123,7 @@ load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c(
 #' Reshape the raw data and output into a dplyr dataframe.
 #'
 #' @param raw_data raw data extracted using load_nc_file. A list.
+#' @param variables variables to be retrieved from the file. A character vector of length n.
 #' @param expand_variables variables to be used as x and y reference of the image grid. These variables must be included in the raw_data list.
 #' @param current_date The date of the observation.
 #' @importFrom lubridate day month year yday
@@ -151,7 +151,6 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     # fun melts each 60x92 matrix into a dataframe.
     # Then the dataframes are binded by column
     #
-    # TidyR?
     fun <- function(x) data.frame(as.vector((x), mode = "numeric"))
     variables_data <- lapply(raw_data[variables], fun)
     variables_df <- do.call(cbind, variables_data)
@@ -166,9 +165,7 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     reshaped_data <- data_grid %>%
         mutate(date = current_date) %>%
         bind_cols(variables_df) %>%
-        mutate(
-               #id.pixel = row_number(),
-               id.date = yday(date) - 1,
+        mutate(id.date = yday(date) - 1,
                month = month(date),
                year = year(date))
 
@@ -177,17 +174,18 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
 
 
 ################################################################################
-#' Add an id for each pixel and bind all the rows together
+#' Given a list of data loaded using the load_all_as_list() function, this function is used to
+#' assign a unique id to each pixel and bind all the rows together in a single dataframe.
 #'
-#' @param data_list
-#' @param current_date The date of the observation.
-#' @importFrom dplyr rbind_all %>% select mutate row_number full_join
+#' @param data_list A list of dplyr dataframes returned by the load_all_as_list function.
+#' @param coordinates Unique identifier to be used in the id assignment process.
+#' @importFrom dplyr rbind_all %>% select_ mutate row_number full_join
 #' @return A dplyr dataframe
 #' @examples
 #'
 #' @export
 #'
-assign_id_and_melt <- function(data_list, coordinates)
+assign_id_and_melt <- function(data_list, coordinates =  c("lon", "lat"))
 {
 
     # Bind all rows in a single dataframe

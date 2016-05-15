@@ -4,23 +4,41 @@
 \alias{extract_date_from_filepath}
 \title{Extract date from filepath}
 \usage{
-extract_date_from_filepath(path, date_format = "ymd")
+extract_date_from_filepath(path, date_format = "ymd",
+  date_match_position = 1)
 }
 \arguments{
-\item{path}{path to file}
+\item{path}{path to file. Character}
 
-\item{date_format}{Date format. Should match a lubridate}
+\item{date_format}{Date format. Should match a lubridate standard format. Character}
+
+\item{date_match_position}{See notes above.}
 }
 \value{
-full path to a file
+an object of class Date.
 }
 \description{
-Assumptions:
-1. Date is in the following format: dddddddd where d is an integer.
-2. Date is the first 8 digits matched in the filename.
+This function extracts a date from a full path to a file. The date is assumed to
+be in the name of the file.
 }
 \details{
+Assumptions:
+1. Date is in the name of the file.
+2. Date is in the following format: dddddddd where d is an integer.
+3. Date is the first 8 digits matched in the filename. Optionally you can set this to
+be the ith match by setting the match_position parameter to i. See notes below.
+
+Example:
+path = "/home/user/data/file1_20150202_312314342_20150802.nc"
+date_format = "ymd"
+Returns "20150202"
+
 Notes:
-Date format can be set
+1. Note that the function by default returns the first 8 digits sequence it encounters in the filename
+(starting left to right). The argument match_position can be used to access other
+dates. For instance match_position = 2 matches the second date (or, better, 8 digits sequence)
+it finds.
+2. Note that date format can be set (should it vary).
+3. If the date_format is not correct a NA is returned
 }
 

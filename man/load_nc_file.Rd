@@ -5,7 +5,8 @@
 \title{Load a single .nc file}
 \usage{
 load_nc_file(file_path, variables = c("CHL1_mean"), coordinates = c("lon",
-  "lat"), date_format = "ymd")
+  "lat"), spare_coordinates = c("longitude", "latitude"),
+  date_format = "ymd", date_match_position = 1)
 }
 \arguments{
 \item{file_path}{the path of the file to load. Character.}
@@ -14,15 +15,23 @@ load_nc_file(file_path, variables = c("CHL1_mean"), coordinates = c("lon",
 
 \item{coordinates}{longitude and latitude}
 
-\item{current_date}{the date of the observations. A lubridate object}
+\item{spare_coordinates}{Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
+.nc file. In order to account this possibility, you can provide a set of spare names for both coordinates.}
+
+\item{date_format}{the format of the dates for each file.}
+
+\item{date_match_position}{An integer. If the name of each file contains one or more dates, chose which one will be used as the
+current date for the file. Example: if a file is named "20150202file2_20150706.nc", if date_match_position is set
+to 1 (default), the first date, 20150202 will be used. If you'd like to use the second one, set the parameter to 2.}
 }
 \value{
 A dplyr dataframe
 }
 \description{
-Load a single .nc file
+This function loads a single .nc files and returns a dplyr dataframe of the extracted variables.
 }
 \examples{
-
+# Load "data02022015.nc"
+# data_02022015 <- load_nc_file("~path/data02022015.nc", date_format = "dmy")
 }
 

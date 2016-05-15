@@ -2,14 +2,16 @@
 % Please edit documentation in R/loading_data_functions.R
 \name{reshape_data}
 \alias{reshape_data}
-\title{Reshape the raw data and output a dataframe.}
+\title{Reshape the raw data and output into a dplyr dataframe.}
 \usage{
 reshape_data(raw_data, variables, expand_variables, current_date)
 }
 \arguments{
 \item{raw_data}{raw data extracted using load_nc_file. A list.}
 
-\item{expand_variables}{variables to be used as x and y reference of the image. These variables must be included in the raw_data list.}
+\item{variables}{variables to be retrieved from the file. A character vector of length n.}
+
+\item{expand_variables}{variables to be used as x and y reference of the image grid. These variables must be included in the raw_data list.}
 
 \item{current_date}{The date of the observation.}
 }
@@ -17,7 +19,7 @@ reshape_data(raw_data, variables, expand_variables, current_date)
 A dplyr dataframe
 }
 \description{
-Reshape the raw data and output a dataframe.
+Reshape the raw data and output into a dplyr dataframe.
 }
 \examples{
 

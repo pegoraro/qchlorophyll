@@ -4,17 +4,24 @@
 \alias{make_path}
 \title{Make path function}
 \usage{
-make_path(filename, path)
+make_path(file_name, path)
 }
 \arguments{
-\item{filename}{name of the file}
+\item{file_name}{name of the file. Character}
 
-\item{path}{path to folder}
+\item{path}{path to folder. Character}
 }
 \value{
-full path to a file
+full path to a file. Character
 }
 \description{
-Work in progress.
+Given a path to a folder and the name of a file in that folder, this function
+builds the path to that file.
+}
+\details{
+Example:
+path = "/home/user/date"
+filename = "data.txt"
+Return = "/home/user/date/data.txt"
 }
 
