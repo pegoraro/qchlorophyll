@@ -211,7 +211,7 @@ filter_dates_and_get_filenames <- function(dates, from, to)
 #' @param from Initial date. A character or NULL
 #' @param to Ending date. A character or NULL
 #' @param date_format date format
-#' @importFrom dplyr parse_date_time
+#' @importFrom lubridate parse_date_time
 #' @return Returns a list of selected filenames to be loaded
 #'
 select_filenames_by_date <- function(file_names, from, to, date_format)

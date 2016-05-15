@@ -4,19 +4,26 @@
 \alias{load_all_as_list}
 \title{Load all .nc files in a given local path}
 \usage{
-load_all_as_list(path, variables = c("CHL1_mean"), coordinates = c("lon",
-  "lat"), spare_coordinates = c("longitude", "latitude"),
-  date_format = "ymd", date_match_position = 1)
+load_all_as_list(path, from = NULL, to = NULL, variables = c("CHL1_mean"),
+  coordinates = c("lon", "lat"), spare_coordinates = c("longitude",
+  "latitude"), date_format = "ymd", date_match_position = 1)
 }
 \arguments{
-\item{path}{Path where to .nc files are located. Eg: /home/data. Character.}
+\item{path}{Path where to .nc files are located. Example: /home/data. Character.}
 
-\item{variables}{variables to be retrieved from the file. A character vector of length n.}
+\item{from}{Starting date to load files. Character. Must be in the same format selected with the parameter date_format.
+By default "from" is NULL.}
 
-\item{coordinates}{Grid variables (for instance, longitude and latitude).}
+\item{to}{Ending date to load files. Character. Must be in the same format selected with the parameter date_format.
+By default "to" is NULL.}
+
+\item{variables}{variables to be retrieved from the .nc file. A character vector of length n. Set by default to be: c("CHL1_mean").}
+
+\item{coordinates}{Grid variables (for instance, longitude and latitude). Set by default to be: c("lon","lat").}
 
 \item{spare_coordinates}{Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
-.nc file. In order to account this possibility, you can provide a set of spare names for both coordinates.}
+.nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
+to be: c("longitude","latitude").}
 
 \item{date_format}{date format. By default it is set to be "ymd" (year, month, day). This is the format of the date in each
 filename. It can be set to other values such as "dmy" and "mdy". Check lubridate's package help for more information.}
@@ -32,7 +39,8 @@ A list of all the .nc files loaded
 Load all .nc files in a given local path
 }
 \examples{
-# Load all .nc files in /home/data, extract the variable "CHL1_mean" and use longitude and latitude to uniquely identify each observation
+# Load all .nc files in /home/data, extract the variable "CHL1_mean"
+# and use longitude and latitude to uniquely identify each observation.
 # loaded_files_list <- load_all_as_list(path = /home/data, variables = c("CHL1_mean"), coordinates = c("lon","lat"))
 
 }
