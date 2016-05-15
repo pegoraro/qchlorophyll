@@ -2,6 +2,8 @@
 #' Load all .nc files in a given local path
 #'
 #' @param path Path where to .nc files are located. Eg: /home/data. Character.
+#' @param from Starting date to load files. Character. Must be in the same format selected with the parameter date_format
+#' @param to Ending date to load files. Character. Must be in the same format selected with the parameter date_format
 #' @param variables variables to be retrieved from the file. A character vector of length n.
 #' @param coordinates Grid variables (for instance, longitude and latitude).
 #' @param spare_coordinates Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
@@ -11,23 +13,28 @@
 #' to 1 (default), the first date, 20150202 will be used. If you'd like to use the second one, set the parameter to 2 and so on.
 #' @param date_format date format. By default it is set to be "ymd" (year, month, day). This is the format of the date in each
 #' filename. It can be set to other values such as "dmy" and "mdy". Check lubridate's package help for more information.
+#' @importFrom lubridate parse_date_time
 #' @return A list of all the .nc files loaded
 #' @examples
-#' # Load all .nc files in /home/data, extract the variable "CHL1_mean" and use longitude and latitude to uniquely identify each observation
+#' # Load all .nc files in /home/data, extract the variable "CHL1_mean"
+#' # and use longitude and latitude to uniquely identify each observation.
 #' # loaded_files_list <- load_all_as_list(path = /home/data, variables = c("CHL1_mean"), coordinates = c("lon","lat"))
 #'
 #' @export
 #'
-load_all_as_list <- function(path, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), date_format = "ymd", date_match_position = 1)
+load_all_as_list <- function(path, from = NULL, to = NULL, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), date_format = "ymd", date_match_position = 1)
 {
     # List files with extension .nc in the given path
     file_names <- list.files(path = path, pattern = "\\.nc$")
 
     # Seleziona solo i file nell'intervallo di date
-    # Fun
+    selected_file_names <- select_filenames_by_date(file_names = file_names,
+                                                    from = from,
+                                                    to = to,
+                                                    date_format = date_format)
 
     # Genera il percorso al singolo file (cfr utils.R)
-    nc_files_path <- sapply(file_names, make_path, path = path)
+    nc_files_path <- sapply(selected_file_names, make_path, path = path)
 
     # Custom loading function. Potrebbe essere messo nel lapply evitando la definizione della funzione, volendo.
     # Ma forse è più chiaro cosi'.
