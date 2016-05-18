@@ -2,10 +2,11 @@
 % Please edit documentation in R/statistics_calculation_functions.R
 \name{calculate_aggregate_stat}
 \alias{calculate_aggregate_stat}
-\title{Extract a single variable from a .nc file}
+\title{Calculate a stastistic on aggregated data}
 \usage{
 calculate_aggregate_stat(data, variable = "CHL1_mean",
-  groups = list("id.pixel", "id.date"), stat_fun = "mean", name = "avg")
+  groups = list("id.pixel", "id.date"), stat_fun = "mean",
+  unique_id = list("lat", "lon", "id.pixel"))
 }
 \arguments{
 \item{data}{a dplyr data frame}
@@ -17,7 +18,7 @@ calculate_aggregate_stat(data, variable = "CHL1_mean",
 \item{stat_fun}{Function to calculate the statistic. This parameter must be a function that accepts a vector as an argument
 and returns a single value. For instance: mean, var, sd.}
 
-\item{name}{name to assign to the statistic}
+\item{unique_id}{unique id}
 }
 \value{
 A dplyr data frame.

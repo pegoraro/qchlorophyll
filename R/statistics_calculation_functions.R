@@ -6,15 +6,15 @@
 #'
 #' @param data a dplyr data frame
 #' @param variable variable to use in the calculation of the statistic
-#' @param groups variables to group by. A list.
 #' @param stat_fun Function to calculate the statistic. This parameter must be a function that accepts a vector as an argument
 #' and returns a single value. For instance: mean, var, sd.
+#' @param groups variables to group by. A list.
 #' @param unique_id unique id
 #' @importFrom dplyr group_by_ summarise_ select_
 #' @return A dplyr data frame.
 #' @export
 #'
-calculate_aggregate_stat <- function(data, variable = "CHL1_mean", groups = list("id.pixel", "id.date"), stat_fun = "mean", unique_id = list("lat", "lon", "id.pixel"))
+calculate_aggregate_stat <- function(data, variable = "CHL1_mean", stat_fun = "mean", groups = list("id.pixel", "id.date"), unique_id = list("lat", "lon", "id.pixel"))
 {
     # Example
     # d <- calculate_aggregate_stat(provola)
@@ -42,19 +42,15 @@ calculate_aggregate_stat <- function(data, variable = "CHL1_mean", groups = list
 #'
 #' @param data a dplyr data frame
 #' @param variables variable to use in the calculation of the statistic. A list with names.
-#' @param groups variables to group by. A list.
 #' @param stat_funs A list of functions to calculate the statistics with.
-#' and returns a single value. For instance: mean, var, sd.
+#' @param groups variables to group by. A list.
 #' @importFrom dplyr group_by_ summarise_
 #' @return A list of dplyr dataframes.
 #' @export
 #'
-aggregate_stats <- function(data, variable = "CHL1_mean", groups = list("id.pixel", "id.date"), stat_funs = list(avg = "mean", sdev = "sd"))
+aggregate_stats <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean", sdev = "sd"), groups = list("id.pixel", "id.date"))
 {
-    # Example
-    # aggregate_stats(provola, stat_funs = list("mean","sd"))
-
-    # Define function to calculate stats
+    # Define custom function to calculate stats
     calc_stat <- function(stat_fun)
     {
         calculate_aggregate_stat(data = data,
@@ -63,26 +59,26 @@ aggregate_stats <- function(data, variable = "CHL1_mean", groups = list("id.pixe
                                  stat_fun = stat_fun)
     }
 
-    # Set names to the list (should the list have no names, the names of the functions are used)
+    # Set names to the list (should the list have no names, the names of the functions will be used)
     names(stat_funs) <- if( is.null(names(stat_funs)) ){ as.character(stat_funs) }else{ names(stat_funs) }
 
-    # Calculate the statistics
+    # Calculate the statistics with each stat_fun
     statistics <- lapply(stat_funs, calc_stat)
 
     return(statistics)
 }
 
-#' Reshape stats
-#'
-#' This function reshapes the list of statistics calculated using aggregate stats in the following way:
-#' 1. The list of dataframe (each dataframe contains a statistic) is
-#'
-#' @param
-#' @importFrom
-#' @return
-#' @export
-#'
-reshape_stats <- function()
-{
-    ##
-}
+# #' Reshape stats
+# #'
+# #' This function reshapes the list of statistics calculated using aggregate stats in the following way:
+# #' 1. The list of dataframe (each dataframe contains a statistic) is
+# #'
+# #' @param
+# #' @importFrom
+# #' @return
+# #' @export
+# #'
+# reshape_stats <- function()
+# {
+#     ##
+# }
