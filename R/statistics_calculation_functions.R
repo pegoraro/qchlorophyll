@@ -11,6 +11,7 @@
 #' @param groups variables to group by. A list.
 #' @param unique_id unique id
 #' @importFrom dplyr group_by_ summarise_ select_
+#' @importFrom lazyeval interp
 #' @return A dplyr data frame.
 #' @export
 #'
@@ -50,7 +51,7 @@ calculate_aggregate_stat <- function(data, variable = "CHL1_mean", stat_fun = "m
 #'
 aggregate_stats <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean", sdev = "sd"), groups = list("id.pixel", "id.date"))
 {
-    # Define custom function to calculate stats
+    # Define custom function to calculate stats.
     calc_stat <- function(stat_fun)
     {
         calculate_aggregate_stat(data = data,
@@ -68,17 +69,62 @@ aggregate_stats <- function(data, variable = "CHL1_mean", stat_funs = list(avg =
     return(statistics)
 }
 
-# #' Reshape stats
-# #'
-# #' This function reshapes the list of statistics calculated using aggregate stats in the following way:
-# #' 1. The list of dataframe (each dataframe contains a statistic) is
-# #'
-# #' @param
-# #' @importFrom
-# #' @return
-# #' @export
-# #'
-# reshape_stats <- function()
-# {
-#     ##
-# }
+################################################################################
+#' Reshape a dataframe (from wide to long)
+#'
+#' This function reshapes a dataframe from the following format:
+#' lat lon id.pixel id.date avg
+#'
+#' to the following format
+#' lat lon id.pixel id.date_1 id.date_2 ...
+#'                  avg_1     avg_2     ...
+#'
+#'
+#' @param data dplyr dataframe to be reshaped
+#' @param key key argument in tidyr::spread
+#' @param id unique identifier for each pixel
+#' @param other_id other unique identifiers (for instance: longitude and latitude)
+#' @importFrom tidyr spread
+#' @export
+#'
+reshape_stats <- function(data, key = "id.date", id = "id.pixel", other_id = list("lon", "lat"))
+{
+    # Soluzione temporanea. Di fatto value è il nome della colonna con le statistiche. (Ultima colonna)
+    value <- names(data)[dim(data)[2]]
+
+    # Select long dataframe
+    data_long <- data %>% select_(id, key, value)
+    # Use tidyr::spread
+    data_wide <- data_long %>% spread_(key = key, value = value)
+    # Add other_id using a full join
+    data_wide_out <- data %>% select_(.dots = other_id, id) %>% distinct() %>% full_join(data_wide)
+    # Return
+    return(data_wide_out)
+}
+
+################################################################################
+#' Reshape each dataframe in a list
+#'
+#' This function reshapes each dataframe in the list data_list.
+#' The input list (data_list) must be obtained from the aggregate_stats function
+#'
+#' Each dataframe is reshaped as follows:
+#' id.pixel lon lat jday_1 jday_2 ...
+#'
+#' Where jday_n is the nth julian day.
+#'
+#' The output list takes the names from the input list
+#'
+#' @param data_list a list of dplyr dataframes obtained from the aggregate_stats function.
+#' @return A list of dplyr dataframes. This list has the same length as the input list.
+#' @export
+#'
+reshape_all_stats <- function(data_list)
+{
+    # Apply reshape_stats to each element of the input list
+    out_list <- lapply(data_list, reshape_stats)
+    # Set names
+    names(out_list) <- names(data_list)
+    # Return
+    return(out_list)
+}

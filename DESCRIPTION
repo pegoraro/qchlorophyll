@@ -9,7 +9,8 @@ Description: Package for geographical chlorophyll analysis. This package can be 
 Imports:
     ncdf,
     dplyr,
-    lubridate
+    lubridate,
+    lazyeval
 License: GPL-3
 LazyData: TRUE
 RoxygenNote: 5.0.1
