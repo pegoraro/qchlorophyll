@@ -4,7 +4,7 @@
 \alias{reshape_stats_df}
 \title{Reshape a dataframe (from wide to long)}
 \usage{
-reshape_stats_df(data, value, id = "id.pixel", key = "id.date",
+reshape_stats_df(data, value, id = "id_pixel", key = "id_date",
   other_id = list("lon", "lat"))
 }
 \arguments{
@@ -21,11 +21,11 @@ place the other unique identifiers in the other_id list.}
 }
 \description{
 This function reshapes a dataframe from the following format:
-lat lon id.pixel id.date avg
+lat lon id_pixel id_date avg
 }
 \details{
 to the following format
-lat lon id.pixel id.date_1 id.date_2 ...
+lat lon id_pixel id_date_1 id_date_2 ...
                  avg_1     avg_2     ...
 }
 

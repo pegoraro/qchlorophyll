@@ -5,8 +5,8 @@
 \title{Calculate a series of stastistics on aggregated data}
 \usage{
 aggregate_statistics(data, variable = "CHL1_mean", stat_funs = list(avg =
-  "mean(x, na.rm=TRUE)"), groups = list("id.pixel", "id.date"),
-  unique_id = list("lat", "lon", "id.pixel"))
+  "mean(x, na.rm=TRUE)"), groups = list("id_pixel", "id_date"),
+  unique_id = list("lat", "lon", "id_pixel"))
 }
 \arguments{
 \item{data}{a dplyr data frame}
@@ -19,7 +19,7 @@ You can calculate multiple statistics too, for instance, to calculate both the m
 stat_funs = list(avg = "mean(x)", sd = "sd(x)"). Note that:
 1. The name of the function inside the list will be the name of the column of the statistic calculated.
 2. The variable inside each function should be expressed as "x".
-3. Each function should accept a vector as an input and output a single number.}
+3. Each function must accept a vector as an input and output a single number.}
 
 \item{groups}{variables to group by (ie to aggregate by). A list.}
 

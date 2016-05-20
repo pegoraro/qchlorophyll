@@ -114,7 +114,7 @@ load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c(
     # m1, m2 and m3 are sampled.
     #
     # The melted (reshaped) df should look like this
-    # lat long id.pixel meas
+    # lat long id_pixel meas
     # l1  lg1  1        m1
     # l2  lg2  2        m2
     # ...
@@ -174,7 +174,7 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
     reshaped_data <- data_grid %>%
         mutate(date = current_date) %>%
         bind_cols(variables_df) %>%
-        mutate(id.date = yday(date) - 1,
+        mutate(id_date = yday(date) - 1,
                month = month(date),
                year = year(date))
 
@@ -199,9 +199,9 @@ assign_id_and_melt <- function(data_list, coordinates =  c("lon", "lat"))
 
     # Bind all rows in a single dataframe
     data <- data_list %>% rbind_all()
-    # Calculate id.pixel
-    id <- data %>% select_(coordinates[2], coordinates[1]) %>% unique() %>% mutate(id.pixel = row_number())
-    # Add id.pixel
+    # Calculate id_pixel
+    id <- data %>% select_(coordinates[2], coordinates[1]) %>% unique() %>% mutate(id_pixel = row_number())
+    # Add id_pixel
     data <- full_join(id, data)
 
     return(data)
