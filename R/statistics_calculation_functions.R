@@ -1,74 +1,43 @@
 ################################################################################
-#' Calculate a stastistic on aggregated data
+#' Calculate a series of stastistics on aggregated data
 #'
-#' This function groups the observations and calculates a given statistic.
-#' Note: By default the function calculates the mean.
+#' This function groups the observations and calculates a series of statistics.
 #'
 #' @param data a dplyr data frame
-#' @param variable variable to use in the calculation of the statistic
-#' @param stat_fun Function to calculate the statistic. This parameter must be a function that accepts a vector as an argument
-#' and returns a single value. For instance: mean, var, sd.
-#' @param groups variables to group by. A list.
-#' @param unique_id unique id
+#' @param variable variable to use in the calculation of the statistics
+#' @param stat_funs a list of functions to calculate the statistics. Each function must be expressed either as a
+#' formula or as a character. For instance, if I would like to calculate the mean, I could set stat_funs = list(avg = "mean(x)").
+#' You can calculate multiple statistics too, for instance, to calculate both the mean and the standard deviation, just set
+#' stat_funs = list(avg = "mean(x)", sd = "sd(x)"). Note that:
+#' 1. The name of the function inside the list will be the name of the column of the statistic calculated.
+#' 2. The variable inside each function should be expressed as "x".
+#' 3. Each function should accept a vector as an input and output a single number.
+#' @param groups variables to group by (ie to aggregate by). A list.
+#' @param unique_id A list of unique identifiers.
 #' @importFrom dplyr group_by_ summarise_ select_
-#' @importFrom lazyeval interp
+#' @importFrom stringr str_replace
 #' @return A dplyr data frame.
 #' @export
 #'
-calculate_aggregate_stat <- function(data, variable = "CHL1_mean", stat_fun = "mean", groups = list("id.pixel", "id.date"), unique_id = list("lat", "lon", "id.pixel"))
+aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean(x, na.rm=TRUE)"), groups = list("id.pixel", "id.date"), unique_id = list("lat", "lon", "id.pixel"))
 {
-    # Example
-    # d <- calculate_aggregate_stat(provola)
-
     # .dots to get around NSE in dplyr
     dots_groups <- groups
-    # Formula. Come passare parametri a f???
-    stat_fun_formula <- interp( ~f(var, na.rm=TRUE), var = as.name(variable), f = as.name(stat_fun))
-    # .dots to get around NSE in dplyr
-    dots_summarise <- list(stat_fun_formula)
-    # Stats
-    stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_(.dots = setNames(dots_summarise, c(paste(stat_fun, variable, sep = "_"))))
+    # Add NA count
+    stat_funs$NAs_count <- "sum(is.na(x))"
+    # Add group numerosity
+    stat_funs$n_count <- "n()"
 
-    # Keep unique id?
+    dots_summarise <- lapply(stat_funs, function(x) str_replace(x, "x", variable))
+    # Stats. Grouping non funziona???
+    stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_(.dots = dots_summarise)
+    # Keep unique id
     stats <- data %>% select_(.dots = unique_id) %>% unique() %>% full_join(stats)
-
+    # Return
     return(stats)
 }
 
-################################################################################
-#' Calculate multiple statistics on aggregated data
-#'
-#' This function groups the observations and calculates a given number of statistics.
-#' The function returns a list of dataframes (ie a dataframe per statistic)
-#'
-#' @param data a dplyr data frame
-#' @param variables variable to use in the calculation of the statistic. A list with names.
-#' @param stat_funs A list of functions to calculate the statistics with.
-#' @param groups variables to group by. A list.
-#' @importFrom dplyr group_by_ summarise_
-#' @return A list of dplyr dataframes.
-#' @export
-#'
-aggregate_stats <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean", sdev = "sd"), groups = list("id.pixel", "id.date"))
-{
-    # Define custom function to calculate stats.
-    calc_stat <- function(stat_fun)
-    {
-        calculate_aggregate_stat(data = data,
-                                 variable = variable,
-                                 groups = groups,
-                                 stat_fun = stat_fun)
-    }
-
-    # Set names to the list (should the list have no names, the names of the functions will be used)
-    names(stat_funs) <- if( is.null(names(stat_funs)) ){ as.character(stat_funs) }else{ names(stat_funs) }
-
-    # Calculate the statistics with each stat_fun
-    statistics <- lapply(stat_funs, calc_stat)
-
-    return(statistics)
-}
-
+# Funzione che fa il reshape su una variabile (value)
 ################################################################################
 #' Reshape a dataframe (from wide to long)
 #'
@@ -81,50 +50,53 @@ aggregate_stats <- function(data, variable = "CHL1_mean", stat_funs = list(avg =
 #'
 #'
 #' @param data dplyr dataframe to be reshaped
+#' @param value value argument in tidyr::spread
+#' @param id unique identifier for each pixel. Must be a character. If more than one unique identifier is available, then
+#' place the other unique identifiers in the other_id list.
 #' @param key key argument in tidyr::spread
-#' @param id unique identifier for each pixel
 #' @param other_id other unique identifiers (for instance: longitude and latitude)
-#' @importFrom tidyr spread
+#' @importFrom dplyr select_ %>% distinct full_join
+#' @importFrom tidyr spread_
 #' @export
 #'
-reshape_stats <- function(data, key = "id.date", id = "id.pixel", other_id = list("lon", "lat"))
+reshape_stats_df <- function(data, value, id = "id.pixel", key = "id.date" , other_id = list("lon", "lat"))
 {
-    # Soluzione temporanea. Di fatto value è il nome della colonna con le statistiche. (Ultima colonna)
-    value <- names(data)[dim(data)[2]]
-
-    # Select long dataframe
+    # Select relevant columns
     data_long <- data %>% select_(id, key, value)
-    # Use tidyr::spread
+    # Convert from long to wide
     data_wide <- data_long %>% spread_(key = key, value = value)
-    # Add other_id using a full join
-    data_wide_out <- data %>% select_(.dots = other_id, id) %>% distinct() %>% full_join(data_wide)
+    # Get back all the ids
+    data_wide <- data %>% select_(.dots = other_id, id) %>% distinct() %>% full_join(data_wide)
     # Return
-    return(data_wide_out)
+    return(data_wide)
 }
 
+# Funzione che fa il reshape su lista di variabili
 ################################################################################
-#' Reshape each dataframe in a list
+#' Given a list of variables and a dataframe, make a reshaped (from wide to long)
+#' dataframe for each variable and output a list of dataframes
 #'
-#' This function reshapes each dataframe in the list data_list.
-#' The input list (data_list) must be obtained from the aggregate_stats function
-#'
-#' Each dataframe is reshaped as follows:
-#' id.pixel lon lat jday_1 jday_2 ...
-#'
-#' Where jday_n is the nth julian day.
-#'
-#' The output list takes the names from the input list
-#'
-#' @param data_list a list of dplyr dataframes obtained from the aggregate_stats function.
-#' @return A list of dplyr dataframes. This list has the same length as the input list.
+#' @param data dplyr dataframe to be reshaped containing the variables to be used in the reshaping process
+#' @param var_list list of variables to be used in the reshaping process. These variables will be used as the
+#' "value" argument in the function tidyr::spread
+#' @param id unique identifier for each pixel
+#' @param key key argument in tidyr::spread
+#' @param other_id other unique identifiers (for instance: longitude and latitude)
 #' @export
 #'
-reshape_all_stats <- function(data_list)
+reshape_statistics <- function(data, stat_list = list("avg"), id = "id.pixel", key = "id.date", other_id = list("lon", "lat"))
 {
-    # Apply reshape_stats to each element of the input list
-    out_list <- lapply(data_list, reshape_stats)
+    # Define custom reshaping function
+    reshaping_function <- function(value){ reshape_stats_df(data = data,
+                                            value = value,
+                                            id = id,
+                                            key = key,
+                                            other_id = other_id)}
+    # Apply the reshaping function to each statistic. Note: the output is a list with a long dataframe for each statistic
+    # in the var_list
+    reshaped_data <- lapply(stat_list, reshaping_function)
     # Set names
-    names(out_list) <- names(data_list)
+    names(reshaped_data) <- unlist(stat_list)
     # Return
-    return(out_list)
+    return(reshaped_data)
 }
