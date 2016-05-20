@@ -14,7 +14,7 @@
 #' 3. Each function must accept a vector as an input and output a single number.
 #' @param groups variables to group by (ie to aggregate by). A list.
 #' @param unique_id A list of unique identifiers.
-#' @importFrom dplyr group_by_ summarise_ select_
+#' @importFrom dplyr group_by_ summarise_ select_ %>%
 #' @importFrom stringr str_replace
 #' @return A dplyr data frame.
 #' @export
