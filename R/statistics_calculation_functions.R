@@ -113,7 +113,7 @@ reshape_statistics <- function(data, stat_list = list("avg"), id = "id_pixel", k
 #' @param reshaped_data_list a list of reshaped statistics obtained with the function reshape_statistics
 #' @param max_missing_periods Maximum number of missing periods. (All observations with more missing periods will be removed)
 #' @param  unique_id A unique identifier of the observations such as "id_pixel"
-#' @importFrom dplyr select_ %>% distinct filter_
+#' @importFrom dplyr select_ %>% distinct filter_ inner_join
 #' @export
 #'
 filter_out_na <- function(stats_dataframe, reshaped_data_list, max_missing_periods = 2, unique_id = "id_pixel")
