@@ -13,13 +13,14 @@
 #' 2. The variable inside each function should be expressed as "x".
 #' 3. Each function must accept a vector as an input and output a single number.
 #' @param groups variables to group by (ie to aggregate by). A list.
-#' @param unique_id A list of unique identifiers.
-#' @importFrom dplyr group_by_ summarise_ select_ %>%
+#' @param id The main unique identifier.
+#' @param unique_id list of all the unique identifiers in the data.
+#' @importFrom dplyr group_by_ summarise_ select_ %>% distinct full_join
 #' @importFrom stringr str_replace
 #' @return A dplyr data frame.
 #' @export
 #'
-aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean(x, na.rm=TRUE)"), groups = list("id_pixel", "id_date"), unique_id = list("lat", "lon", "id_pixel"))
+aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean(x, na.rm=TRUE)"), groups = list("id_pixel", "id_date"), id = "id_pixel", unique_id = list("lat", "lon", "id_pixel"))
 {
     # .dots to get around NSE in dplyr
     dots_groups <- groups
@@ -32,7 +33,7 @@ aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(
     # Stats
     stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_(.dots = dots_summarise)
     # Keep unique id
-    stats <- data %>% select_(.dots = unique_id) %>% unique() %>% full_join(stats)
+    stats <- data %>% select_(.dots = unique_id) %>% distinct() %>% full_join(stats, by = id)
     # Return
     return(stats)
 }
@@ -55,7 +56,7 @@ aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(
 #' place the other unique identifiers in the other_id list.
 #' @param key key argument in tidyr::spread
 #' @param other_id other unique identifiers (for instance: longitude and latitude)
-#' @importFrom dplyr select_ %>% distinct full_join
+#' @importFrom dplyr select_ %>% distinct inner_join
 #' @importFrom tidyr spread_
 #' @export
 #'
@@ -65,14 +66,15 @@ reshape_stats_df <- function(data, value, id = "id_pixel", key = "id_date" , oth
     data_long <- data %>% select_(id, key, value)
     # Convert from long to wide
     data_wide <- data_long %>% spread_(key = key, value = value)
-    # Get back all the ids
-    data_wide <- data %>% select_(.dots = other_id, id) %>% distinct() %>% full_join(data_wide)
+
     # Set names to data wide
-    starting_index <- length( c(key, unlist(other_id)) ) + 1
-    other_index <- starting_index - 1
-    jdays <- sprintf("%03d", as.integer(names(data_wide[starting_index:40])))
+    jdays <- sprintf("%03d", as.integer(names(data_wide[2:dim(data_wide)[2]])))
     jdays_names <- sapply(jdays, function(x) paste("d_", x, sep = ""))
-    names(data_wide) <- c(names(data_wide)[1:other_index], jdays_names)
+    names(data_wide) <- c(names(data_wide)[1], jdays_names)
+
+    # Get back all the ids
+    data_wide <- data %>% select_(.dots = other_id, id) %>% distinct() %>% inner_join(data_wide, by = id)
+
     # Return
     return(data_wide)
 }
@@ -123,7 +125,7 @@ filter_out_na <- function(stats_dataframe, reshaped_data_list, max_missing_perio
         filter_( .dots = list(paste("NAs_count <=", max_missing_periods, sep=" "))) %>%
         select_(unique_id) %>% distinct()
     # For each reshaped dataframe, keep only the pixel selected above
-    reshaped_no_na <- lapply(reshaped_data_list, function(x){ id_values_to_keep %>% inner_join(x) })
+    reshaped_no_na <- lapply(reshaped_data_list, function(x){ id_values_to_keep %>% inner_join(x, by = unique_id) })
     # Return
     return(reshaped_no_na)
 }

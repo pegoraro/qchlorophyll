@@ -38,18 +38,14 @@ load_all_as_list <- function(path, from = NULL, to = NULL, variables = c("CHL1_m
     # Genera il percorso al singolo file (cfr utils.R)
     nc_files_path <- sapply(selected_file_names, make_path, path = path)
 
-    # Custom loading function. Potrebbe essere messo nel lapply evitando la definizione della funzione, volendo.
-    # Ma forse è più chiaro cosi'.
-    loading_function <- function(file){ load_nc_file(file,
-                                                     variables = variables,
-                                                     coordinates = coordinates,
-                                                     spare_coordinates = spare_coordinates,
-                                                     date_format = date_format,
-                                                     date_match_position = date_match_position) }
-
     # Carica tutti i file in una singola lista.
     # Ogni elemento della lista contiene un dataframe dplyr
-    nc_files <- lapply(nc_files_path, loading_function)
+    nc_files <- lapply(nc_files_path, FUN = load_nc_file,
+                                            variables,
+                                            coordinates,
+                                            spare_coordinates,
+                                            date_format,
+                                            date_match_position)
 
     # Ritorna la lista di tutti i file caricati
     return(nc_files)
@@ -188,7 +184,7 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
 #'
 #' @param data_list A list of dplyr dataframes returned by the load_all_as_list function.
 #' @param coordinates Unique identifier to be used in the id assignment process.
-#' @importFrom dplyr rbind_all %>% select_ mutate row_number full_join
+#' @importFrom dplyr rbind_all %>% select_ mutate row_number full_join distinct
 #' @return A dplyr dataframe
 #' @examples
 #'
@@ -200,9 +196,9 @@ assign_id_and_melt <- function(data_list, coordinates =  c("lon", "lat"))
     # Bind all rows in a single dataframe
     data <- data_list %>% rbind_all()
     # Calculate id_pixel
-    id <- data %>% select_(coordinates[2], coordinates[1]) %>% unique() %>% mutate(id_pixel = row_number())
+    id <- data %>% select_(coordinates[2], coordinates[1]) %>% distinct() %>% mutate(id_pixel = row_number())
     # Add id_pixel
-    data <- full_join(id, data)
+    data <- full_join(id, data, by = coordinates)
 
     return(data)
 }
