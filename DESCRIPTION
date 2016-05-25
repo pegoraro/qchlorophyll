@@ -8,10 +8,11 @@ Maintainer: Michy Alice <michy.alice@quantide.com>
 Description: Package for geographical chlorophyll analysis. This package can be used for loading data from .nc files on satellite observations, aggregate that data and calculate summary statistics on it.
 Imports:
     ncdf,
-    dplyr,
-    tidyr,
-    lubridate,
-    stringr
+    dplyr (>= 0.4.3),
+    tidyr (>= 0.4.1),
+    lubridate (>= 1.5.6),
+    clusterSim,
+    ggplot2
 License: GPL-3
 LazyData: TRUE
 RoxygenNote: 5.0.1

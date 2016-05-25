@@ -6,34 +6,33 @@
 #' @param data a dplyr data frame
 #' @param variable variable to use in the calculation of the statistics
 #' @param stat_funs a list of functions to calculate the statistics. Each function must be expressed either as a
-#' formula or as a character. For instance, if I would like to calculate the mean, I could set stat_funs = list(avg = "mean(x)").
+#' formula or as a character. For instance, if I would like to calculate the mean, I could set stat_funs = list(avg = "mean").
 #' You can calculate multiple statistics too, for instance, to calculate both the mean and the standard deviation, just set
-#' stat_funs = list(avg = "mean(x)", sd = "sd(x)"). Note that:
-#' 1. The name of the function inside the list will be the name of the column of the statistic calculated.
-#' 2. The variable inside each function should be expressed as "x".
+#' stat_funs = list(avg = "mean", sd = "sd"). Note that:
+#' 1. The name of the function inside the list will be the name of the column of the statistic calculated in the output dataframe.
+#' 2. Should you need to pass arguments to each function such as "na.rm=TRUE" you can do this by setting list(avg = "mean(. , na.rm=TRUE)").
+#' You can pass all the arguments needed to the functions inside stat_fun, provided you remember to add the dot as the first argument.
 #' 3. Each function must accept a vector as an input and output a single number.
+#' 4. By default the number of missing data per group (NAs_count = sum(is.na(.)))) and the number of observations in each group (n_count = n())
+#' is calculated. Note that in case you need to filter out missing data with the function "filter_out_na", the filtering function expects the data
+#' to contain a variable named NAs_count containing the information on missing data.
 #' @param groups variables to group by (ie to aggregate by). A list.
-#' @param id The main unique identifier.
-#' @param unique_id list of all the unique identifiers in the data.
-#' @importFrom dplyr group_by_ summarise_ select_ %>% distinct full_join
-#' @importFrom stringr str_replace
+#' @param id The main unique identifier (id_pixel for instance). A character.
+#' @param unique_id list of all the unique identifiers in the data you would like to keep. (By default: list("lat","lon", "id_pixel")). A list
+#' @importFrom dplyr group_by_ summarise_each_ select_ %>% distinct full_join funs_
 #' @return A dplyr data frame.
 #' @export
 #'
-aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean(x, na.rm=TRUE)"), groups = list("id_pixel", "id_date"), id = "id_pixel", unique_id = list("lat", "lon", "id_pixel"))
+aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean(., na.rm = TRUE)", NAs_count = "sum(is.na(.))", n_count = "n()"), groups = list("id_pixel", "id_date"), id = "id_pixel", unique_id = list("lat", "lon", "id_pixel"))
 {
     # .dots to get around NSE in dplyr
     dots_groups <- groups
-    # Add NA count
-    stat_funs$NAs_count <- "sum(is.na(x))"
-    # Add group numerosity
-    stat_funs$n_count <- "n()"
-
-    dots_summarise <- lapply(stat_funs, function(x) str_replace(x, "x", variable))
-    # Stats
-    stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_(.dots = dots_summarise)
+    # Stats calculation
+    stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_each_(funs_(dots = stat_funs), variable)
     # Keep unique id
     stats <- data %>% select_(.dots = unique_id) %>% distinct() %>% full_join(stats, by = id)
+    # Set statistics names as attributs
+    attr(stats, "statistics_names") <- names(stat_funs)
     # Return
     return(stats)
 }
@@ -47,11 +46,11 @@ aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(
 #'
 #' to the following format
 #' lat lon id_pixel id_date_1 id_date_2 ...
-#'                  avg_1     avg_2     ...
+#'                  avg_11    avg_12     ...
 #'
 #'
-#' @param data dplyr dataframe to be reshaped
 #' @param value value argument in tidyr::spread
+#' @param data dplyr dataframe to be reshaped
 #' @param id unique identifier for each pixel. Must be a character. If more than one unique identifier is available, then
 #' place the other unique identifiers in the other_id list.
 #' @param key key argument in tidyr::spread
@@ -60,7 +59,7 @@ aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(
 #' @importFrom tidyr spread_
 #' @export
 #'
-reshape_stats_df <- function(data, value, id = "id_pixel", key = "id_date" , other_id = list("lon", "lat"))
+reshape_stats_df <- function(value, data, id = "id_pixel", key = "id_date" , other_id = list("lon", "lat"))
 {
     # Select relevant columns
     data_long <- data %>% select_(id, key, value)
@@ -85,26 +84,20 @@ reshape_stats_df <- function(data, value, id = "id_pixel", key = "id_date" , oth
 #' dataframe for each variable and output a list of dataframes
 #'
 #' @param data dplyr dataframe to be reshaped containing the variables to be used in the reshaping process
-#' @param var_list list of variables to be used in the reshaping process. These variables will be used as the
-#' "value" argument in the function tidyr::spread
 #' @param id unique identifier for each pixel
 #' @param key key argument in tidyr::spread
 #' @param other_id other unique identifiers (for instance: longitude and latitude)
 #' @export
 #'
-reshape_statistics <- function(data, stat_list = list("avg"), id = "id_pixel", key = "id_date", other_id = list("lon", "lat"))
+reshape_statistics <- function(data, id = "id_pixel", key = "id_date", other_id = list("lon", "lat"))
 {
-    # Define custom reshaping function
-    reshaping_function <- function(value){ reshape_stats_df(data = data,
-                                            value = value,
-                                            id = id,
-                                            key = key,
-                                            other_id = other_id)}
-    # Apply the reshaping function to each statistic. Note: the output is a list with a long dataframe for each statistic
-    # in the var_list
-    reshaped_data <- lapply(stat_list, reshaping_function)
+    # Get the name of the statistics to reshape
+    stat_names <- attr(data, "statistics_names")
+    # Apply the reshaping function to each statistic.
+    # Note: the output is a list with a long dataframe for each statistic in the stat_list
+    reshaped_data <- lapply(stat_names, reshape_stats_df, data, id, key, other_id)
     # Set names
-    names(reshaped_data) <- unlist(stat_list)
+    names(reshaped_data) <- stat_names
     # Return
     return(reshaped_data)
 }
@@ -113,16 +106,21 @@ reshape_statistics <- function(data, stat_list = list("avg"), id = "id_pixel", k
 #'
 #' @param stats_dataframe a dplyr dataframe containing statistics about NAs calculated using the function aggregate_statistics
 #' @param reshaped_data_list a list of reshaped statistics obtained with the function reshape_statistics
+#' @param missing_data_col_name Name of the variable (column) where the information about missing data is stored
 #' @param max_missing_periods Maximum number of missing periods. (All observations with more missing periods will be removed)
 #' @param  unique_id A unique identifier of the observations such as "id_pixel"
 #' @importFrom dplyr select_ %>% distinct filter_ inner_join
 #' @export
 #'
-filter_out_na <- function(stats_dataframe, reshaped_data_list, max_missing_periods = 2, unique_id = "id_pixel")
+filter_out_na <- function(stats_dataframe, reshaped_data_list, missing_data_col_name = "NAs_count", max_missing_periods = 2, unique_id = "id_pixel")
 {
+    # Builds "x <="
+    comparator_expression <- paste(missing_data_col_name, "<=", sep = " ")
+    # Pastes "x <=" and max_missing_periods
+    filter_dots <- list(paste(comparator_expression, max_missing_periods, sep = " "))
     # Select which pixels to keep based on missing data
     id_values_to_keep <- stats_dataframe %>%
-        filter_( .dots = list(paste("NAs_count <=", max_missing_periods, sep=" "))) %>%
+        filter_( .dots = filter_dots) %>%
         select_(unique_id) %>% distinct()
     # For each reshaped dataframe, keep only the pixel selected above
     reshaped_no_na <- lapply(reshaped_data_list, function(x){ id_values_to_keep %>% inner_join(x, by = unique_id) })

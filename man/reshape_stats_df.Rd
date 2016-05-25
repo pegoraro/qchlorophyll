@@ -4,13 +4,13 @@
 \alias{reshape_stats_df}
 \title{Reshape a dataframe (from wide to long)}
 \usage{
-reshape_stats_df(data, value, id = "id_pixel", key = "id_date",
+reshape_stats_df(value, data, id = "id_pixel", key = "id_date",
   other_id = list("lon", "lat"))
 }
 \arguments{
-\item{data}{dplyr dataframe to be reshaped}
-
 \item{value}{value argument in tidyr::spread}
+
+\item{data}{dplyr dataframe to be reshaped}
 
 \item{id}{unique identifier for each pixel. Must be a character. If more than one unique identifier is available, then
 place the other unique identifiers in the other_id list.}
@@ -26,6 +26,6 @@ lat lon id_pixel id_date avg
 \details{
 to the following format
 lat lon id_pixel id_date_1 id_date_2 ...
-                 avg_1     avg_2     ...
+                 avg_11    avg_12     ...
 }
 

@@ -5,8 +5,8 @@
 \title{Given a list of variables and a dataframe, make a reshaped (from wide to long)
 dataframe for each variable and output a list of dataframes}
 \usage{
-reshape_statistics(data, stat_list = list("avg"), id = "id_pixel",
-  key = "id_date", other_id = list("lon", "lat"))
+reshape_statistics(data, id = "id_pixel", key = "id_date",
+  other_id = list("lon", "lat"))
 }
 \arguments{
 \item{data}{dplyr dataframe to be reshaped containing the variables to be used in the reshaping process}
@@ -16,9 +16,6 @@ reshape_statistics(data, stat_list = list("avg"), id = "id_pixel",
 \item{key}{key argument in tidyr::spread}
 
 \item{other_id}{other unique identifiers (for instance: longitude and latitude)}
-
-\item{var_list}{list of variables to be used in the reshaping process. These variables will be used as the
-"value" argument in the function tidyr::spread}
 }
 \description{
 Given a list of variables and a dataframe, make a reshaped (from wide to long)

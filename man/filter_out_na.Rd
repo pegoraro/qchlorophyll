@@ -4,13 +4,16 @@
 \alias{filter_out_na}
 \title{Filter out data with more than n missing periods}
 \usage{
-filter_out_na(stats_dataframe, reshaped_data_list, max_missing_periods = 2,
+filter_out_na(stats_dataframe, reshaped_data_list,
+  missing_data_col_name = "NAs_count", max_missing_periods = 2,
   unique_id = "id_pixel")
 }
 \arguments{
 \item{stats_dataframe}{a dplyr dataframe containing statistics about NAs calculated using the function aggregate_statistics}
 
 \item{reshaped_data_list}{a list of reshaped statistics obtained with the function reshape_statistics}
+
+\item{missing_data_col_name}{Name of the variable (column) where the information about missing data is stored}
 
 \item{max_missing_periods}{Maximum number of missing periods. (All observations with more missing periods will be removed)}
 
