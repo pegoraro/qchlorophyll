@@ -9,7 +9,6 @@
 #' @param exclude_variables variables to be excluded from the standardization process. A list of characters.
 #' @importFrom dplyr select_ %>%
 #' @return A matrix
-#' @export
 #'
 standardize_data <- function(data, exclude_variables = list("lon", "lat", "id_pixel"))
 {
@@ -37,7 +36,6 @@ standardize_data <- function(data, exclude_variables = list("lon", "lat", "id_pi
 #' @importFrom clusterSim index.G1
 #' @importFrom ggplot2 ggplot geom_point geom_line xlab ylab aes
 #' @return The optimal number of clusters. (The number of clusters for which the index calculated is maximum)
-#' @export
 #'
 optimal_clusters_number <- function(x, minC = 2, maxC = 10, plot_show = FALSE)
 {
@@ -77,7 +75,6 @@ optimal_clusters_number <- function(x, minC = 2, maxC = 10, plot_show = FALSE)
 #' @param random_seed Random seed set for reproducibility purposes. Numeric. (Integer)
 #' @param ... Other arguments accepted by the stats::kmeans function.
 #' @return An object of class kmeans
-#' @export
 #'
 kmeans_analysis <- function(x, n_centers, random_seed, ...)
 {
