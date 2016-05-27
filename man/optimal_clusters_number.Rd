@@ -2,8 +2,7 @@
 % Please edit documentation in R/kmeans-analysis.R
 \name{optimal_clusters_number}
 \alias{optimal_clusters_number}
-\title{###############################################################################
-Select the optimal number of clusters using the Calinski-Harabasz index}
+\title{Select the optimal number of clusters using the Calinski-Harabasz index}
 \usage{
 optimal_clusters_number(x, minC = 2, maxC = 10, plot_show = FALSE)
 }

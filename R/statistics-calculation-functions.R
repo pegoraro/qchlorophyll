@@ -37,9 +37,8 @@ aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(
     return(stats)
 }
 
-# Funzione che fa il reshape su una variabile (value)
 ################################################################################
-#' Reshape a dataframe (from wide to long)
+#' Reshape a single dataframe (from wide to long)
 #'
 #' This function reshapes a dataframe from the following format:
 #' lat lon id_pixel id_date avg
@@ -78,8 +77,9 @@ reshape_stats_df <- function(value, data, id = "id_pixel", key = "id_date" , oth
     return(data_wide)
 }
 
-# Funzione che fa il reshape su lista di variabili
 ################################################################################
+#' Reshape a list of dataframes from wide to long
+#'
 #' Given a list of variables and a dataframe, make a reshaped (from wide to long)
 #' dataframe for each variable and output a list of dataframes
 #'
@@ -102,6 +102,41 @@ reshape_statistics <- function(data, id = "id_pixel", key = "id_date", other_id 
     return(reshaped_data)
 }
 
+################################################################################
+#' Filter out data with more than n missing periods
+#'
+#'
+#' @param reshaped_data_list a list of reshaped statistics obtained with the function reshape_statistics
+#' @param max_missing_periods Maximum number of missing periods. (All observations with more missing periods will be removed)
+#' @export
+#'
+filter_out_na <- function(reshaped_data_list, max_missing_periods)
+{
+    # Temporary dataframe
+    temp_df <- NULL
+
+    # Reshape each statistics
+    for(i in 1:length(reshaped_data_list))
+    {
+        # Assign tempororay df
+        temp_df <- reshaped_data_list[[i]]
+        # Calculate number of NAs for each row
+        NA_number_each_row <- apply(temp_df, 1, function(x) sum(is.na(x)))
+        # Dataframe without NAs
+        less_NAs_df <- temp_df[ NA_number_each_row <= max_missing_periods, ]
+        # Number of NAs within each time series
+        NA_number <- apply(less_NAs_df, 1, function(x) sum(is.na(x)))
+        # Number of pixels left. Print info
+        npixel_left <- length(NA_number)
+        percent_pixel_left <- (npixel_left/5520)*100
+        #print(paste("% of pixels left ", percent_pixel_left, sep=""))
+        # Reassign new df to old place in the list
+        reshaped_data_list[[i]] <- less_NAs_df
+    }
+    return(reshaped_data_list)
+}
+
+################################################################################
 # #' Filter out data with more than n missing periods
 # #'
 # #' @param stats_dataframe a dplyr dataframe containing statistics about NAs calculated using the function aggregate_statistics
@@ -127,35 +162,3 @@ reshape_statistics <- function(data, id = "id_pixel", key = "id_date", other_id 
 #     # Return
 #     return(reshaped_no_na)
 # }
-
-#' Filter out data with more than n missing periods
-#'
-#' @param reshaped_data_list a list of reshaped statistics obtained with the function reshape_statistics
-#' @param max_missing_periods Maximum number of missing periods. (All observations with more missing periods will be removed)
-#' @export
-#'
-filter_out_na <- function(reshaped_data_list, max_missing_periods)
-{
-    # Temporary dataframe
-    temp_df <- NULL
-
-    # Reshape each statistics
-    for(i in 1:length(reshaped_data_list))
-    {
-        # Assign tempororay df
-        temp_df <- reshaped_data_list[[i]]
-        # Calculate number of NAs for each row
-        NA_number_each_row <- apply(temp_df, 1, function(x) sum(is.na(x)))
-        # Dataframe without NAs
-        exit_df <- temp_df[ a <= max_missing_periods, ]
-        # Number of NAs within each time series
-        numero_na2 <- apply(exit_df, 1, function(x) sum(is.na(x)))
-        # Number of leftover pixels. Print info
-        npixel_rimasti <- length(numero_na2)
-        percent_pixel_left <- (npixel_rimasti/5520)*100
-        print(paste("% of pixels left ", percent_pixel_left, sep=""))
-        # Reassign new df to old place in the list
-        reshaped_data_list[[i]] <- temp_df
-    }
-    return(reshaped_data_list)
-}

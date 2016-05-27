@@ -2,8 +2,7 @@
 % Please edit documentation in R/kmeans-analysis.R
 \name{standardize_data}
 \alias{standardize_data}
-\title{###############################################################################
-Standardize data before running kmeans}
+\title{Standardize data before running kmeans}
 \usage{
 standardize_data(data, exclude_variables = list("lon", "lat", "id_pixel"))
 }

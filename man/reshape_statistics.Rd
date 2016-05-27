@@ -2,8 +2,7 @@
 % Please edit documentation in R/statistics-calculation-functions.R
 \name{reshape_statistics}
 \alias{reshape_statistics}
-\title{Given a list of variables and a dataframe, make a reshaped (from wide to long)
-dataframe for each variable and output a list of dataframes}
+\title{Reshape a list of dataframes from wide to long}
 \usage{
 reshape_statistics(data, id = "id_pixel", key = "id_date",
   other_id = list("lon", "lat"))

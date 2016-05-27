@@ -2,7 +2,7 @@
 % Please edit documentation in R/statistics-calculation-functions.R
 \name{reshape_stats_df}
 \alias{reshape_stats_df}
-\title{Reshape a dataframe (from wide to long)}
+\title{Reshape a single dataframe (from wide to long)}
 \usage{
 reshape_stats_df(value, data, id = "id_pixel", key = "id_date",
   other_id = list("lon", "lat"))

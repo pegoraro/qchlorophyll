@@ -1,7 +1,7 @@
 Package: qchlorophyll
 Type: Package
 Title: qchlorophyll
-Version: 0.2.1
+Version: 0.3
 Date: 2016-05-06
 Author: Michy Alice
 Maintainer: Michy Alice <michy.alice@quantide.com>
@@ -11,8 +11,8 @@ Imports:
     dplyr (>= 0.4.3),
     tidyr (>= 0.4.1),
     lubridate (>= 1.5.6),
-    clusterSim,
-    ggplot2
+    ggplot2,
+    clusterSim
 License: GPL-3
 LazyData: TRUE
 RoxygenNote: 5.0.1

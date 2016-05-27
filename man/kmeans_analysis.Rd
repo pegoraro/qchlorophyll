@@ -2,8 +2,7 @@
 % Please edit documentation in R/kmeans-analysis.R
 \name{kmeans_analysis}
 \alias{kmeans_analysis}
-\title{###############################################################################
-Run kmeans analysis}
+\title{Run kmeans analysis}
 \usage{
 kmeans_analysis(x, n_centers, random_seed, ...)
 }

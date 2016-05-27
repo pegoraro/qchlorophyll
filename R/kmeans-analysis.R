@@ -1,4 +1,4 @@
-#' ###############################################################################
+################################################################################
 #' Standardize data before running kmeans
 #'
 #' This function is used to standardize the data before running the kmeans analysis function.
@@ -18,13 +18,15 @@ standardize_data <- function(data, exclude_variables = list("lon", "lat", "id_pi
     data <- data %>% select_(.dots = variables_to_drop)
     # Remove NA
     data <- na.omit(data)
-    # Standardize
-    scaled_data <- scale(data)
+    # Standardize variables by their range
+    rge <- sapply(data, function(x) diff(range(x)))
+    scaled_data <- sweep(x = data, MARGIN = 2, STATS = rge, FUN = "/")
+    attr(scaled_data, "rge") <- rge
     # Return
     return(scaled_data)
 }
 
-#' ###############################################################################
+################################################################################
 #' Select the optimal number of clusters using the Calinski-Harabasz index
 #'
 #' This function is used to standardize the data before running the kmeans analysis function.
@@ -66,7 +68,7 @@ optimal_clusters_number <- function(x, minC = 2, maxC = 10, plot_show = FALSE)
     return(optimal_clusters)
 }
 
-#' ###############################################################################
+################################################################################
 #' Run kmeans analysis
 #'
 #' Note: this function takes as argument all the arguments used by the stats::kmeans function. Simply
