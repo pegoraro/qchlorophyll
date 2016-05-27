@@ -79,19 +79,13 @@ media_e_sd_reshaped <- reshape_statistics(media_e_sd)
 # Filtraggio dati mancanti
 
 # L'output di questa funzione è una lista di dataframe (come quella di reshape_statistics)
-# senza i pixel rimossi a causa del numero elevato di NA.
+# senza i pixel rimossi.
 
-media_e_sd_reshaped_less_NA <- filter_out_na(media_e_sd,
-                                        media_e_sd_reshaped,
-                                        missing_data_col_name = "NAs_count",
-                                        max_missing_periods = 2)
+# Il filtro viene applicato sulla serie temporale TS come da indicazioni nell'email
+# Il numero di pixel rimanenti viene stampato dalla funzione a video.
 
-# Nota1: molti parametri indicati non sono necessari siccome sono già fissati di default.
-# Vedere l'help della funzione per maggiori informazioni.
-
-# Nota2: Per usare questa funzione è necessario aver calcolato il numero di dati mancanti
-# attraverso la funzione aggregate_statistics. E' inoltre necessario passare il nome della
-# colonna che contiene il conteggio degli NA tramite il parametro missing_data_col_name
+media_e_sd_reshaped_less_NA <- filter_out_na(reshaped_data_list = media_e_sd_reshaped,
+                                             max_missing_periods =  2)
 
 # Nota3: Vengono tenuti tutti i pixel che hanno associato un numero di NA (secondo i
 # criteri discussi per email) inferiore o uguale al numero specificato in max_missing_periods.
