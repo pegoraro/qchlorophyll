@@ -75,18 +75,45 @@ optimal_clusters_number <- function(x, minC = 2, maxC = 10, plot_show = FALSE)
 #' pass the extra arguments after the x, n_ceters and random_seed arguments.
 #'
 #' @param x a dataframe or a matrix containing the data. The data should be standardized for better results
-#' @param n_centers Number of clusters to be used
-#' @param random_seed Random seed set for reproducibility purposes. Numeric. (Integer)
+#' @param n_centers Number of clusters to be used. A vector such as 2:5
+#' @param seed Random seed set for reproducibility purposes. Numeric, NULL by default. (Integer)
 #' @param ... Other arguments accepted by the stats::kmeans function.
+#' @importFrom clusterSim index.G1
 #' @return An object of class kmeans
+#' @examples
+#' # mod <- kmeans_analysis(data_, n_centers = 2:3, seed = 100)
 #' @export
 #'
-kmeans_analysis <- function(x, n_centers, random_seed, ...)
+kmeans_analysis <- function(x, n_centers, seed = NULL, ...)
 {
-    # Set random seed
-    set.seed(random_seed)
-    # Run the model
-    model <- kmeans(x = x, centers = n_centers, ...)
-    # Return the model. Nota i risultati sono ancora standardizzati.
-    return(model)
+    # Set random seed if seed is not NULL
+    if( ! is.null(seed) ){ set.seed(seed) }
+
+    # Output list
+    results <- list()
+
+    # Run the model for each value in n_centers
+    k = 1
+
+    for(i in n_centers)
+    {
+        # Apply kmeans
+        model <- kmeans(x = x, centers = i, ...)
+        # Calculate Calinski-Harabasz index
+        calinski_harabasz_index <- index.G1(x, model$cluster)
+        # Add index to model results
+        model$calinski_harabasz_index <- calinski_harabasz_index
+        # Scale back data?? Chiedere.
+        model$centers <- model$centers * attr(x, "rge")
+        # Add results to output list
+        results[[k]] <- model
+
+        k = k + 1
+    }
+
+    # Set names to output list
+    names(results) <- sapply(n_centers, function(x) paste("n_centers_", x, sep=""))
+
+    # Return
+    return(results)
 }

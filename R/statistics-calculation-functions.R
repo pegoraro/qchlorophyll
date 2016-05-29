@@ -23,12 +23,18 @@
 #' @return A dplyr data frame.
 #' @export
 #'
+#' #iris %>% summarise_each(funs(mysum = sum(.)), Sepal.Length, Sepal.Width) %>% setNames(c("a", "b"))
+#'
 aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean(., na.rm = TRUE)", NAs_count = "sum(is.na(.))", n_count = "n()"), groups = list("id_pixel", "id_date"), id = "id_pixel", unique_id = list("lat", "lon", "id_pixel"))
 {
     # .dots to get around NSE in dplyr
     dots_groups <- groups
-    # Stats calculation
-    stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_each_(funs_(dots = stat_funs), variable)
+    # New names. Newly added
+    #############################################
+    new_names <- c(as.vector(groups), names(stat_funs))
+    #############################################
+    # Stats calculation.
+    stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_each_(funs_(dots = stat_funs), variable) %>% setNames(new_names)
     # Keep unique id
     stats <- data %>% select_(.dots = unique_id) %>% distinct() %>% full_join(stats, by = id)
     # Set statistics names as attributs
@@ -126,10 +132,6 @@ filter_out_na <- function(reshaped_data_list, max_missing_periods)
         less_NAs_df <- temp_df[ NA_number_each_row <= max_missing_periods, ]
         # Number of NAs within each time series
         NA_number <- apply(less_NAs_df, 1, function(x) sum(is.na(x)))
-        # Number of pixels left. Print info
-        npixel_left <- length(NA_number)
-        percent_pixel_left <- (npixel_left/5520)*100
-        #print(paste("% of pixels left ", percent_pixel_left, sep=""))
         # Reassign new df to old place in the list
         reshaped_data_list[[i]] <- less_NAs_df
     }
