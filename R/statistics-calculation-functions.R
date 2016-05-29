@@ -23,7 +23,6 @@
 #' @return A dplyr data frame.
 #' @export
 #'
-#' #iris %>% summarise_each(funs(mysum = sum(.)), Sepal.Length, Sepal.Width) %>% setNames(c("a", "b"))
 #'
 aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(avg = "mean(., na.rm = TRUE)", NAs_count = "sum(is.na(.))", n_count = "n()"), groups = list("id_pixel", "id_date"), id = "id_pixel", unique_id = list("lat", "lon", "id_pixel"))
 {

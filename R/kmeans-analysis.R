@@ -7,7 +7,7 @@
 #'
 #' @param data a dplyr dataframe containing the data to be standardized
 #' @param exclude_variables variables to be excluded from the standardization process. A list of characters.
-#' @importFrom dplyr select_ %>%
+#' @importFrom dplyr select_ %>% tbl_df
 #' @return A matrix
 #' @export
 #'
@@ -16,11 +16,15 @@ standardize_data <- function(data, exclude_variables = list("lon", "lat", "id_pi
     # Drop columns not needed
     variables_to_drop <- lapply(exclude_variables, function(x) paste("-", x, sep = ""))
     data <- data %>% select_(.dots = variables_to_drop)
-    # Remove NA
+    # Remove NA. Not sure.. it removes too many rows..
     data <- na.omit(data)
     # Standardize variables by their range
     rge <- sapply(data, function(x) diff(range(x)))
     scaled_data <- sweep(x = data, MARGIN = 2, STATS = rge, FUN = "/")
+    scaled_data <- tbl_df(scaled_data)
+    # Bind columns
+    #scaled_data <- data %>% select_(.dots = exclude_variables) %>% bind_cols(scaled_data)
+    # Attach rge
     attr(scaled_data, "rge") <- rge
     # Return
     return(scaled_data)
