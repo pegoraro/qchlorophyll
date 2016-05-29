@@ -103,10 +103,8 @@ kmeans_analysis <- function(x, n_centers, seed = NULL, ...)
     {
         # Apply kmeans
         model <- kmeans(x = x, centers = i, ...)
-        # Calculate Calinski-Harabasz index
-        calinski_harabasz_index <- index.G1(x, model$cluster)
         # Add index to model results
-        model$calinski_harabasz_index <- calinski_harabasz_index
+        model$calinski_harabasz_index <- index.G1(x, model$cluster)
         # Scale back data?? Chiedere.
         model$centers <- model$centers * attr(x, "rge")
         # Add results to output list
