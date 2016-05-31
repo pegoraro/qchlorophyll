@@ -4,14 +4,19 @@
 \alias{kmeans_analysis}
 \title{Run kmeans analysis}
 \usage{
-kmeans_analysis(x, n_centers, seed = NULL, ...)
+kmeans_analysis(x, n_centers, nstart = 1, seed = NULL,
+  exclude_variables = list("lon", "lat", "id_pixel"), ...)
 }
 \arguments{
 \item{x}{a dataframe or a matrix containing the data. The data should be standardized for better results}
 
 \item{n_centers}{Number of clusters to be used. A vector such as 2:5}
 
+\item{nstart}{how many random sets should be chosen?}
+
 \item{seed}{Random seed set for reproducibility purposes. Numeric, NULL by default. (Integer)}
+
+\item{exclude_variables}{variables to exclude from kmeans analysis. A list of characters}
 
 \item{...}{Other arguments accepted by the stats::kmeans function.}
 }
@@ -20,9 +25,6 @@ An object of class kmeans
 }
 \description{
 Note: this function takes as argument all the arguments used by the stats::kmeans function. Simply
-pass the extra arguments after the x, n_ceters and random_seed arguments.
-}
-\examples{
-# mod <- kmeans_analysis(data_, n_centers = 2:3, seed = 100)
+pass the extra arguments to the function.
 }
 

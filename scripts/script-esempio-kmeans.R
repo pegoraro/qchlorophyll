@@ -3,7 +3,7 @@
 ################################################################################
 # Note:
 # Funziona con qchlorophyll versione 0.3
-# Pacchetti aggiuntivi richiesti: ClusterSim, ggplot2
+# Pacchetti aggiuntivi richiesti: ClusterSim, ggplot2, zoo
 
 # Inizio script di esempio
 ################################################################################
@@ -28,8 +28,7 @@ nc_dataframe <- assign_id_and_melt(nc_files_list)
 # Calcolo media
 
 media <- aggregate_statistics(nc_dataframe,
-                                   stat_funs = list(avg = "mean(., na.rm=TRUE)",
-                                                    sdv = "sd(., na.rm=TRUE)"),
+                                   stat_funs = list(avg = "mean(., na.rm=TRUE)"),
                                    variable = "CHL1_mean")
 
 ################################################################################
@@ -44,19 +43,42 @@ media_reshaped_less_NA <- filter_out_na(reshaped_data_list = media_reshaped,
                                              max_missing_periods =  2)
 
 ################################################################################
+# Approssimzione dati mancanti (NA)
+
+# Seleziono il dataframe che contiene i valori medi per ogni giorno per pixel
+x <- media_reshaped_less_NA[[1]]
+
+# Approssimo gli NA.
+# Nota: di default (id_pixel, lon e lat sono esclusi dal processo, l'argomento
+# "exclude variables" è ridondante in questo caso)
+x <- approximate_NAs(data = x, exclude_variables = list("lon", "lat", "id_pixel"))
+
+################################################################################
 # Standardizzazione dati
 
-x <- media_reshaped_less_NA[[1]]
+# Nota: di default (id_pixel, lon e lat sono esclusi dal processo, l'argomento
+# "exclude variables" è ridondante in questo caso)
 x_stdz <- standardize_data(x, exclude_variables = list("lon", "lat", "id_pixel"))
 
 ################################################################################
-# Plot indice
+# Analisi kmeans
 
-optimal_clusters_number(x = x, minC = 2, maxC = 5, plot_show = TRUE)
+# Centri scelti, n_centers: da 2 a 5
+# Numero di iterazioni, nstart: 10
+# Nota: ogni lista risultante dal kmeans contiene sia i centri standardizzati che i centri
+# ripristinati alla loro scala orginale.
+kmeans_results <- kmeans_analysis(x = x_stdz, n_centers = 2:5, nstart = 10, seed = 100)
 
 ################################################################################
-# Run k-means analysis
-kmeans_results <- kmeans_analysis(x = x, n_centers = 2:5, random_seed = 100)
+# Plot dei risultati (Plot dell'indice di Calinski-Harabasz vs il numero di centri)
+
+plot_results(kmeans_results)
+
+################################################################################
+# Scelta risultato ottimale in base all'indice di Calinski-Harabasz. (Risultato
+# migliore == risultato che massimizza tale indice)
+
+final_kmeans_results <- extract_results(kmeans_results)
 
 # Fine script esempio
 ################################################################################
