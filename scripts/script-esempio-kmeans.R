@@ -3,7 +3,7 @@
 ################################################################################
 # Note:
 # Funziona con qchlorophyll versione 0.3
-# Pacchetti aggiuntivi richiesti: ClusterSim, ggplot2, mice, lattice
+# Pacchetti aggiuntivi richiesti: ClusterSim, ggplot2, mice
 
 # Inizio script di esempio
 ################################################################################
@@ -58,12 +58,12 @@ x <- media_reshaped_less_NA[[1]]
 # l'argomento "meth".  Vedere la documentazione della funzione mice::mice per maggiori informazioni
 x <- approximate_NAs(data = x, seed = 500)
 
-# Plot density of imputed data vs actual data
+# Plot della densità dei dati approssimati vs densità dati reali.
+# I dati approssimati sono quelli in viola, i dati reali quelli in blu.
+# Nota: i punti dove mancano la maggior parte dei dati sono il d_024 e il d_312 cioè il primo e l'ultimo
+# giorno giuliano della serie. Le distribuzioni dei dati approssimati sono molto simili a quelle dei dati
+# reali in questi due casi. Negli altri casi mancano pochi dati.
 plot_density_imputed_na(x)
-# Nota 1: Ci sono due plot, premere invio nella console R per visualizzare il secondo plot.
-# Nota 2: Può essere un pò lento a mostrare il secondo plot siccome ci sono molti grafici.
-# Nota 3: Questa funzione non è necessaria, è per avere un'idea della distribuzione dei dati
-# approssimati vs i dati reali.
 
 ################################################################################
 # Standardizzazione dati
@@ -90,7 +90,7 @@ x_stdz <- standardize_data(x)
 # Numero di iterazioni, nstart: 10
 # Nota: ogni lista risultante dal kmeans contiene sia i centri standardizzati che i centri
 # ripristinati alla loro scala orginale.
-kmeans_results <- kmeans_analysis(x = x_stdz, n_centers = 2:5, nstart = 10, seed = 100)
+kmeans_results <- kmeans_analysis(x = x_stdz, n_centers = 2:5, nstart = 100, seed = 100)
 
 ################################################################################
 # Plot dei risultati (Plot dell'indice di Calinski-Harabasz vs il numero di centri)
@@ -105,3 +105,19 @@ final_kmeans_results <- extract_results(kmeans_results)
 
 # Fine script esempio
 ################################################################################
+
+
+
+################################################################################
+# Raccordo gruppi kmeans. Assegno il gruppo ottenuto con kmeans ad ogni pixel.
+
+# Assegno variabile gruppo nel dataframe dei pixel selezionati (x)
+x$gruppo <- final_kmeans_results$cluster
+x
+
+# Seleziono lon, lat, id_pixel e gruppo e faccio un join con il dataframe originale
+new_x <- x %>% select(lon, lat, id_pixel, gruppo) %>% left_join(nc_dataframe, by = c("lon", "lat", "id_pixel"))
+
+# Conto le righe
+# Dovrebbe ritornare 498.
+new_x %>% select(id_pixel) %>% unique() %>% nrow()
