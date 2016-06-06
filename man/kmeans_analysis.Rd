@@ -8,7 +8,8 @@ kmeans_analysis(x, n_centers, nstart = 1, seed = NULL,
   exclude_variables = list("lon", "lat", "id_pixel"), ...)
 }
 \arguments{
-\item{x}{a dataframe or a matrix containing the data. The data should be standardized for better results}
+\item{x}{a dataframe or a matrix containing the data. The data should be
+standardized for better results}
 
 \item{n_centers}{Number of clusters to be used. A vector such as 2:5}
 
@@ -24,7 +25,6 @@ kmeans_analysis(x, n_centers, nstart = 1, seed = NULL,
 An object of class kmeans
 }
 \description{
-Note: this function takes as argument all the arguments used by the stats::kmeans function. Simply
-pass the extra arguments to the function.
+Note: this function takes as argument all the arguments used by the stats::kmeans function.
 }
 

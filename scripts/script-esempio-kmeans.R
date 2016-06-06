@@ -3,7 +3,7 @@
 ################################################################################
 # Note:
 # Funziona con qchlorophyll versione 0.3
-# Pacchetti aggiuntivi richiesti: ClusterSim, ggplot2, zoo
+# Pacchetti aggiuntivi richiesti: ClusterSim, ggplot2, mice, lattice
 
 # Inizio script di esempio
 ################################################################################
@@ -19,6 +19,7 @@ require(qchlorophyll)
 
 # Path
 nc_files_path <- "/home/data_nc"
+nc_files_path <- getwd()
 # Carico file .nc ed estraggo CHL1_mean
 nc_files_list <- load_all_as_list(path = nc_files_path, variables = c("CHL1_mean"))
 # Unisco il tutto in un unico dataframe.
@@ -49,19 +50,41 @@ media_reshaped_less_NA <- filter_out_na(reshaped_data_list = media_reshaped,
 x <- media_reshaped_less_NA[[1]]
 
 # Approssimo gli NA.
-# Nota: di default (id_pixel, lon e lat sono esclusi dal processo, l'argomento
-# "exclude variables" è ridondante in questo caso)
-x <- approximate_NAs(data = x, exclude_variables = list("lon", "lat", "id_pixel"))
+
+# Nota: di default (id_pixel, lon e lat sono esclusi dal processo)
+# L'imputazione è effettuata con il pacchetto mice.
+# I valori vengono approssimati utilizzando il predictive mean matching.
+# E' possibile scegliere il metodo con cui effettuare l'imputazione attraverso
+# l'argomento "meth".  Vedere la documentazione della funzione mice::mice per maggiori informazioni
+x <- approximate_NAs(data = x, seed = 500)
+
+# Plot density of imputed data vs actual data
+plot_density_imputed_na(x)
+# Nota 1: Ci sono due plot, premere invio nella console R per visualizzare il secondo plot.
+# Nota 2: Può essere un pò lento a mostrare il secondo plot siccome ci sono molti grafici.
+# Nota 3: Questa funzione non è necessaria, è per avere un'idea della distribuzione dei dati
+# approssimati vs i dati reali.
 
 ################################################################################
 # Standardizzazione dati
 
-# Nota: di default (id_pixel, lon e lat sono esclusi dal processo, l'argomento
-# "exclude variables" è ridondante in questo caso)
-x_stdz <- standardize_data(x, exclude_variables = list("lon", "lat", "id_pixel"))
+x_stdz <- standardize_data(x)
 
 ################################################################################
 # Analisi kmeans
+
+# Per ogni valore di n_centers, viene effettuata un'analisi di tipo k-means, e calcolato
+# l'indice di Calinski-Harabasz. I risultati (del kmeans e l'indice) sono raccolti in una
+# lista e ritornati.
+
+# Vengono ritornati sia i centri standardizzati che quelli non standardizzati (non scalati).
+
+# I centri standardizzati si ottengono nel seguente modo (es. per numero di centri pari a 2):
+# kmeans_results$`2`$centers
+# I centri NON standardizzati si ottengono nel seguente modo (es. per numero di centri pari a 2):
+# kmeans_results$`2`$centers_not_scaled
+
+# Esempio kmeans da 2 a 5 centri.
 
 # Centri scelti, n_centers: da 2 a 5
 # Numero di iterazioni, nstart: 10

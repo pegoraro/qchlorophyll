@@ -2,19 +2,33 @@
 % Please edit documentation in R/kmeans-analysis.R
 \name{approximate_NAs}
 \alias{approximate_NAs}
-\title{Approximate NAs}
+\title{Impute NAs using mice.}
 \usage{
-approximate_NAs(data, exclude_variables = list("lon", "lat", "id_pixel"))
+approximate_NAs(data, seed, exclude_variables = list("lon", "lat",
+  "id_pixel"), m = 5, maxit = 50, meth = "pmm", ...)
 }
 \arguments{
 \item{data}{a dplyr dataframe containing the data to be standardized}
 
+\item{seed}{random seed for reproducibility purposes}
+
 \item{exclude_variables}{variables to be excluded from the standardization process. A list of characters.}
+
+\item{m}{Number of multiple imputations. The default is m=5.}
+
+\item{maxit}{A scalar giving the number of iterations. The default is 5}
+
+\item{meth}{method used for imputation. See mice::mice function description for more information.}
+
+\item{...}{other parameters passed directly to the mice::mice function}
 }
 \value{
 A dplyr dataframe
 }
 \description{
 This function is used to fill missing NA values using common imputation methods.
+The imputation method can be chosen by setting the meth parameter. For a list of
+all the available imputation methods available, please check the documentation of
+the mice::mice function (?mice::mice)
 }
 

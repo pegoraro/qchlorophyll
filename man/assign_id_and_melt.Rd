@@ -19,7 +19,4 @@ A dplyr dataframe
 Given a list of data loaded using the load_all_as_list() function, this function is used to
 assign a unique id to each pixel and bind all the rows together in a single dataframe.
 }
-\examples{
-
-}
 

@@ -1,33 +1,79 @@
 ################################################################################
-#' Approximate NAs
+#' Impute NAs using mice.
 #'
 #' This function is used to fill missing NA values using common imputation methods.
+#' The imputation method can be chosen by setting the meth parameter. For a list of
+#' all the available imputation methods available, please check the documentation of
+#' the mice::mice function (?mice::mice)
 #'
 #' @param data a dplyr dataframe containing the data to be standardized
+#' @param seed random seed for reproducibility purposes
 #' @param exclude_variables variables to be excluded from the standardization process. A list of characters.
+#' @param m Number of multiple imputations. The default is m=5.
+#' @param maxit A scalar giving the number of iterations. The default is 5
+#' @param meth method used for imputation. See mice::mice function description for more information.
+#' @param ... other parameters passed directly to the mice::mice function
 #' @importFrom dplyr select_ bind_cols tbl_df %>%
-#' @importFrom zoo zoo na.spline
 #' @return A dplyr dataframe
 #' @export
 #'
-approximate_NAs <- function(data, exclude_variables = list("lon", "lat", "id_pixel"))
+approximate_NAs <- function(data, seed, exclude_variables = list("lon", "lat", "id_pixel"), m = 5, maxit = 50, meth = "pmm", ...)
 {
+
     # Drop columns not needed
     variables_to_drop <- lapply(exclude_variables, function(x) paste("-", x, sep = ""))
     data_to_fill <- data %>% select_(.dots = variables_to_drop)
 
     # Spline missing data
-    for(i in 1:nrow(data))
-    {
+    #for(i in 1:nrow(data))
+    #{
         #print(na.spline(zoo(as.numeric(a[i, 4:40]))))
-        data_to_fill[i, ] <- as.numeric(na.spline(zoo(as.numeric(data_to_fill[i, ]))))
-    }
+     #   data_to_fill[i, ] <- as.numeric(na.spline(zoo(as.numeric(data_to_fill[i, ]))))
+    #}
+
+    # Impute data using mice
+    tempData <- mice::mice(data_to_fill, m = m, maxit = maxit, meth = meth, seed = seed, ...)
+
+    # Filled data.
+    filled_data <- mice::complete(tempData, 1)
+    filled_data <- tbl_df(filled_data)
 
     # Bind excluded columns
-    filled_data <- data %>% select_(.dots = exclude_variables) %>% bind_cols(data_to_fill)
+    filled_data <- data %>% select_(.dots = exclude_variables) %>% bind_cols(filled_data)
+
+    # Set attribute for future use. Check no slowdowns
+    attr(filled_data, "imputed_dataset") <- tempData
+
+    # Detach package
 
     # Return
     return(filled_data)
+}
+
+################################################################################
+#' Plot the density of imputed NAs vs actual data
+#'
+#' Density plot of imputed NAs vs actual data.
+#'
+#' @param data dataset imputed obtained from the approximate_NAs function,
+#' must have an "imputed_dataset" attribute.
+#' @importFrom lattice densityplot stripplot
+#' @export
+#'
+plot_density_imputed_na <- function(data)
+{
+    # Mice imputed dataset
+    tempData <- attr(data, "imputed_dataset")
+    # First density plot
+    density_plot_1 <- densityplot(tempData)
+    # Second density plot
+    density_plot2 <- stripplot(tempData)
+    # Print the first plot
+    print(density_plot_1)
+    # Wait for user input
+    readline(prompt = "Press anykey for next plot... It may take a while if there's a lot of data...")
+    # Print the second plot
+    print(density_plot2)
 }
 
 ################################################################################
@@ -39,7 +85,7 @@ approximate_NAs <- function(data, exclude_variables = list("lon", "lat", "id_pix
 #' @param data a dplyr dataframe containing the data to be standardized
 #' @param exclude_variables variables to be excluded from the standardization process. A list of characters.
 #' @importFrom dplyr select_ %>% tbl_df bind_cols
-#' @return A matrix
+#' @return A dplyr dataframe
 #' @export
 #'
 standardize_data <- function(data, exclude_variables = list("lon", "lat", "id_pixel"))
@@ -66,10 +112,10 @@ standardize_data <- function(data, exclude_variables = list("lon", "lat", "id_pi
 ################################################################################
 #' Run kmeans analysis
 #'
-#' Note: this function takes as argument all the arguments used by the stats::kmeans function. Simply
-#' pass the extra arguments to the function.
+#' Note: this function takes as argument all the arguments used by the stats::kmeans function.
 #'
-#' @param x a dataframe or a matrix containing the data. The data should be standardized for better results
+#' @param x a dataframe or a matrix containing the data. The data should be
+#' standardized for better results
 #' @param n_centers Number of clusters to be used. A vector such as 2:5
 #' @param nstart how many random sets should be chosen?
 #' @param seed Random seed set for reproducibility purposes. Numeric, NULL by default. (Integer)

@@ -38,10 +38,4 @@ A list of all the .nc files loaded
 \description{
 Load all .nc files in a given local path
 }
-\examples{
-# Load all .nc files in /home/data, extract the variable "CHL1_mean"
-# and use longitude and latitude to uniquely identify each observation.
-# loaded_files_list <- load_all_as_list(path = /home/data, variables = c("CHL1_mean"), coordinates = c("lon","lat"))
-
-}
 

@@ -12,7 +12,7 @@ standardize_data(data, exclude_variables = list("lon", "lat", "id_pixel"))
 \item{exclude_variables}{variables to be excluded from the standardization process. A list of characters.}
 }
 \value{
-A matrix
+A dplyr dataframe
 }
 \description{
 This function is used to standardize the data before running the kmeans analysis function.

@@ -17,11 +17,6 @@
 #' @param date_format date format. By default it is set to be "ymd" (year, month, day). This is the format of the date in each
 #' filename. It can be set to other values such as "dmy" and "mdy". Check lubridate's package help for more information.
 #' @return A list of all the .nc files loaded
-#' @examples
-#' # Load all .nc files in /home/data, extract the variable "CHL1_mean"
-#' # and use longitude and latitude to uniquely identify each observation.
-#' # loaded_files_list <- load_all_as_list(path = /home/data, variables = c("CHL1_mean"), coordinates = c("lon","lat"))
-#'
 #' @export
 #'
 load_all_as_list <- function(path, from = NULL, to = NULL, variables = c("CHL1_mean"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), date_format = "ymd", date_match_position = 1)
@@ -134,8 +129,6 @@ load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c(
 #' @importFrom lubridate day month year yday
 #' @importFrom dplyr mutate bind_cols tbl_df %>%
 #' @return A dplyr dataframe
-#' @examples
-#'
 #' @export
 #'
 reshape_data <- function(raw_data, variables, expand_variables, current_date)
@@ -186,8 +179,6 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
 #' @param coordinates Unique identifier to be used in the id assignment process.
 #' @importFrom dplyr rbind_all %>% select_ mutate row_number full_join distinct
 #' @return A dplyr dataframe
-#' @examples
-#'
 #' @export
 #'
 assign_id_and_melt <- function(data_list, coordinates =  c("lon", "lat"))
