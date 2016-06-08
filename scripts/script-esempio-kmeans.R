@@ -115,9 +115,15 @@ final_kmeans_results <- extract_results(kmeans_results)
 x$gruppo <- final_kmeans_results$cluster
 x
 
-# Seleziono lon, lat, id_pixel e gruppo e faccio un join con il dataframe originale
-new_x <- x %>% select(lon, lat, id_pixel, gruppo) %>% left_join(nc_dataframe, by = c("lon", "lat", "id_pixel"))
+new_nc <- nc_dataframe %>% select(lon,lat,id_pixel) %>% distinct()
+new_nc
 
-# Conto le righe
-# Dovrebbe ritornare 498.
-new_x %>% select(id_pixel) %>% unique() %>% nrow()
+new_x <- x %>% select(lon,lat,id_pixel, gruppo) %>% full_join(new_nc, by = c("id_pixel", "lon", "lat")) %>% arrange(id_pixel)
+View(new_x)
+
+sum(new_x$lon != media_reshaped[[1]]$lon)
+sum(new_x$lat != media_reshaped[[1]]$lat)
+sum(new_x$id_pixel != media_reshaped[[1]]$id_pixel)
+sum(is.na(new_x$gruppo))
+
+write.csv(new_x,"gruppi_kmeans.csv")

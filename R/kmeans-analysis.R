@@ -19,17 +19,10 @@
 #'
 approximate_NAs <- function(data, seed, exclude_variables = list("lon", "lat", "id_pixel"), m = 5, maxit = 50, meth = "pmm", ...)
 {
-
+    require(mice)
     # Drop columns not needed
     variables_to_drop <- lapply(exclude_variables, function(x) paste("-", x, sep = ""))
     data_to_fill <- data %>% select_(.dots = variables_to_drop)
-
-    # Spline missing data
-    #for(i in 1:nrow(data))
-    #{
-        #print(na.spline(zoo(as.numeric(a[i, 4:40]))))
-     #   data_to_fill[i, ] <- as.numeric(na.spline(zoo(as.numeric(data_to_fill[i, ]))))
-    #}
 
     # Impute data using mice
     tempData <- mice::mice(data_to_fill, m = m, maxit = maxit, meth = meth, seed = seed, ...)
