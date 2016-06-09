@@ -37,22 +37,32 @@ load_all_csv <- function(main_folder_path, folder, starts_with, years = c("2011"
     # Building path
     #####
     # Build folder path
-    folder_path <- paste(main_folder_path, folder, sep = "/")
-    # Build partial file path
-    partial_file_path <- paste(folder_path, starts_with, sep = "/")
-    # Attach .csv at the end of each year
-    years_csv_ending <- lapply(years, function(x) paste(x, ".csv", sep = ""))
-    # Build full path to each file
-    file_paths <- lapply(years_csv_ending, function(x) paste(partial_file_path, x, sep = ""))
+    # folder_path <- paste(main_folder_path, folder, sep = "/")
+    # # Build partial file path
+    # partial_file_path <- paste(folder_path, starts_with, sep = "/")
+    # # Attach .csv at the end of each year
+    # years_csv_ending <- lapply(years, function(x) paste(x, ".csv", sep = ""))
+    # # Build full path to each file
+    # file_paths <- lapply(years_csv_ending, function(x) paste(partial_file_path, x, sep = ""))
 
-    ####
-    # Loading files into a list
-    ####
+    load_file <- function(year, main_folder_path, folder_path, starts_with){
+        file_name <- paste0(main_folder_path, "/", folder_path, "/", starts_with, year, ".csv")
+        df_loaded <- read.csv(file_name)
+        df_loaded <- tbl_df(df_loaded) %>% mutate(year = as.numeric(year))
+        return(df_loaded)
+    }
 
-    # Load list of df
-    csv_files <- lapply(file_paths, function(x) read.csv(x))
-    # Convert each df into a tbl_df
-    tbls <- lapply(csv_files, function(x) tbl_df(x))
+    tbls <- lapply(X = years, FUN = load_file, main_folder_path=main_folder_path, main_folder_path=main_folder_path, starts_with=starts_with)
+#    file_paths <- sapply(X = years, FUN = concat, main_folder_path=main_folder_path, folder_path=folder_path, starts_with=starts_with)
+#
+#     ####
+#     # Loading files into a list
+#     ####
+#
+#     # Load list of df
+#     csv_files <- lapply(file_paths, function(x) read.csv(x))
+#     # Convert each df into a tbl_df
+#     tbls <- lapply(csv_files, function(x) tbl_df(x))
 
     ####
     # Checks
@@ -72,10 +82,10 @@ load_all_csv <- function(main_folder_path, folder, starts_with, years = c("2011"
     ####
 
     # Add year to each dataframe
-    for(i in 1:length(years))
-    {
-        tbls[[i]] <- tbls[[i]] %>% mutate(year = as.numeric(years[i]))
-    }
+    # for(i in 1:length(years))
+    # {
+    #     tbls[[i]] <- tbls[[i]] %>% mutate(year = as.numeric(years[i]))
+    # }
 
     # Return
     return(tbls)
