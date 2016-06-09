@@ -19,7 +19,8 @@
 #'
 approximate_NAs <- function(data, seed, exclude_variables = list("lon", "lat", "id_pixel"), m = 5, maxit = 50, meth = "pmm", ...)
 {
-    require(mice)
+    requireNamespace("mice")
+
     # Drop columns not needed
     variables_to_drop <- lapply(exclude_variables, function(x) paste("-", x, sep = ""))
     data_to_fill <- data %>% select_(.dots = variables_to_drop)

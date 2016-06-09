@@ -17,9 +17,12 @@ in its name where the only changing part is assumed to be the year. A character}
 
 \item{years}{years to load. A character vector.}
 
+\item{npixels}{Number of pixels in each dataframe. (number of rows of data)}
+
 \item{must_have_variables}{a vector of variables that must be included in each .csv file. Character vector.}
 }
 \description{
-Load a bunch of csv files into a single list
+This function loads a bunch of .csv files with identical structure and recurrent pattern
+into a single list. Each .csv file is assumed to have a recurrent pattern in its name.
 }
 
