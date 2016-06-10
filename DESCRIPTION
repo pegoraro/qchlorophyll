@@ -15,7 +15,8 @@ Imports:
     clusterSim,
     mice,
     lattice,
-    randomForest
+    randomForestSRC,
+    ggRandomForests
 License: GPL-3
 LazyData: TRUE
 RoxygenNote: 5.0.1

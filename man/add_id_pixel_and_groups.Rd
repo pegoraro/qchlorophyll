@@ -16,6 +16,7 @@ add_id_pixel_and_groups(dataframe_list, reference_dataframe,
 }
 \description{
 For each dataframe in the data_frame list, id_pixel and the group from the kmeans analysis
-is added. Note that the reference dataframe must contain longitude and latitude (lon and lat).
+is added. Note that the reference dataframe must contain longitude, latitude (lon and lat),
+id_pixel and groups.
 }
 

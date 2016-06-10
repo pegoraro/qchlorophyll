@@ -41,10 +41,11 @@ require(qchlorophyll)
 setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/dati_random_forest")
 path <- getwd()
 
-#-------------------------------------------------------------------------------
+################################################################################
 # Carico df di riferimento (è quello dei cluster)
 # new_x
 
+################################################################################
 # Carico tutti i csv annuali
 
 # Bloom start, wind, sst, sss, sic, par. Ottengo una lista di dataframe per ogni chiamata.
@@ -61,7 +62,7 @@ dfs_par <- load_all_csv(main_folder_path = path, folder = "PAR", starts_with = "
 bat <- load_a_single_csv(file_path = "BAT/BAT.csv")
 clusters <- load_a_single_csv(file_path = "gruppi_kmeans.csv")
 
-#-------------------------------------------------------------------------------
+################################################################################
 # Aggiustamento latitudine e longitudine
 
 dfs_bs2 <- format_lon_lat_list(df_list = dfs_bs, variable = "bs", reference_df = new_x, reformat = FALSE)
@@ -71,7 +72,9 @@ dfs_sss2 <- format_lon_lat_list(df_list = dfs_sss, variable = "sss", reference_d
 dfs_sic2 <- format_lon_lat_list(df_list = dfs_sic, variable = "sic", reference_df = new_x, reformat = TRUE)
 dfs_par2 <- format_lon_lat_list(df_list = dfs_par, variable = "par", reference_df = new_x, reformat = FALSE)
 
+################################################################################
 # Aggiunta id_pixel e gruppo clustering
+
 dfs_bs3 <- add_id_pixel_and_groups(dfs_bs2, reference_dataframe = new_x)
 dfs_ws3 <- add_id_pixel_and_groups(dfs_ws2, reference_dataframe = new_x)
 dfs_sst3 <- add_id_pixel_and_groups(dfs_sst2, reference_dataframe = new_x)
@@ -79,7 +82,22 @@ dfs_sss3 <- add_id_pixel_and_groups(dfs_sss2, reference_dataframe = new_x)
 dfs_sic3 <- add_id_pixel_and_groups(dfs_sic2, reference_dataframe = new_x)
 dfs_par3 <- add_id_pixel_and_groups(dfs_par2, reference_dataframe = new_x)
 
-# Row bind and join. Funziona ma e' da sistemare
+################################################################################
+# Row bind and join. Funziona
+
 final_df <- join_data(multiple_year_data = list(dfs_bs2, dfs_ws2, dfs_sst2, dfs_sss2, dfs_sic2, dfs_par2),
                       single_year_data = list(bat, new_x))
 View(final_df)
+
+################################################################################
+# RF model
+model <- fit_random_forest(formula = bs~sst+sic+gruppo, data = final_df, seed = 500)
+
+# Variable importance plot
+variable_importance_plot(model)
+
+# Minimal depth plot
+minimal_depth_plot(model)
+
+# Partial dependence plot. Lento....
+partial_dependence_plot(model, data = NULL)
