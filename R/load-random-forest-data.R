@@ -1,9 +1,10 @@
 ################################################################################
 #' Load a single .csv file and output a dplyr dataframe
 #'
-#' @param file_path path to .csv file
-#' @param ... other arguments to read.csv
-#' @importFrom dplyr tbl_df %>%
+#' @param file_path path to .csv file to load.
+#' @param ... other arguments to be used by the read.csv function
+#' @importFrom dplyr tbl_df
+#' @export
 #'
 load_a_single_csv <- function(file_path, ...)
 {
@@ -33,113 +34,79 @@ load_a_single_csv <- function(file_path, ...)
 #'
 load_all_csv <- function(main_folder_path, folder, starts_with, years = c("2011", "2012"), npixels = 5520, must_have_variables = c("lon", "lat"))
 {
-    #####
-    # Building path
-    #####
-    # Build folder path
-    # folder_path <- paste(main_folder_path, folder, sep = "/")
-    # # Build partial file path
-    # partial_file_path <- paste(folder_path, starts_with, sep = "/")
-    # # Attach .csv at the end of each year
-    # years_csv_ending <- lapply(years, function(x) paste(x, ".csv", sep = ""))
-    # # Build full path to each file
-    # file_paths <- lapply(years_csv_ending, function(x) paste(partial_file_path, x, sep = ""))
+    # Loading filess
 
-    load_file <- function(year, main_folder_path, folder_path, starts_with){
-        file_name <- paste0(main_folder_path, "/", folder_path, "/", starts_with, year, ".csv")
+    load_file <- function(year, main_folder_path, folder, starts_with)
+    {
+        # Build path
+        file_name <- paste0(main_folder_path, "/", folder, "/", starts_with, year, ".csv")
+        # Load .csv
         df_loaded <- read.csv(file_name)
+        # Convert into dplyr dataframe and add year
         df_loaded <- tbl_df(df_loaded) %>% mutate(year = as.numeric(year))
+        # Return
         return(df_loaded)
     }
 
-    tbls <- lapply(X = years, FUN = load_file, main_folder_path=main_folder_path, main_folder_path=main_folder_path, starts_with=starts_with)
-#    file_paths <- sapply(X = years, FUN = concat, main_folder_path=main_folder_path, folder_path=folder_path, starts_with=starts_with)
-#
-#     ####
-#     # Loading files into a list
-#     ####
-#
-#     # Load list of df
-#     csv_files <- lapply(file_paths, function(x) read.csv(x))
-#     # Convert each df into a tbl_df
-#     tbls <- lapply(csv_files, function(x) tbl_df(x))
+    tbls <- lapply(X = years, FUN = load_file, main_folder_path=main_folder_path, folder = folder, starts_with=starts_with)
 
-    ####
     # Checks
-    ####
 
     # Count number of rows for each dataframe
-    nrows <- sapply(tbls, function(x) nrow(x))
-    # Check that each dataframe has 5520 rows (pixels)
-    if(any(nrows != npixels)){ stop(paste("Some dataframes contain more or less pixels than the selected value of", npixels, sep = " ")) }
-    # Check that each dataframe contains "lon" and "lat" (must_have_variables)
-    names_df <- lapply(tbls, function(x) names(x))
+    nrows <- sapply(tbls, nrow)
+    # 1. Check that each dataframe has 5520 rows (pixels)
+    if( any(nrows != npixels) ){ stop(paste("Some dataframes contain more or less pixels than the selected value of", npixels, sep = " ")) }
+    # 2. Check that each dataframe contains "lon" and "lat" (must_have_variables)
+    names_df <- lapply(tbls, names)
     names_bool <- lapply(names_df, function(x) must_have_variables %in% x)
-    if(any(!unlist(names_bool))){ stop("Some of the required variables are missin from the input .csv files") }
-
-    ####
-    # Adding year information
-    ####
-
-    # Add year to each dataframe
-    # for(i in 1:length(years))
-    # {
-    #     tbls[[i]] <- tbls[[i]] %>% mutate(year = as.numeric(years[i]))
-    # }
+    if( any(!unlist(names_bool)) ){ stop("Some of the required variables are missing from the input .csv files") }
 
     # Return
     return(tbls)
 }
 
 ################################################################################
-#' Add id_pixel and kmeans groups from a reference dataframe. Make a left join.
-#'
-#' For each dataframe in the data_frame list, id_pixel and the group from the kmeans analysis
-#' is added. Note that the reference dataframe must contain longitude and latitude (lon and lat).
-#'
-#' @param dataframe_list a list of dplyr dataframes
-#' @param reference_dataframe reference dataframe containing lon, lat, id_pixel, and groups.
-#' @param join_by variables to join by
-#' @importFrom dplyr left_join
-#' @export
-#'
-add_id_pixel_and_groups <- function(dataframe_list, reference_dataframe, join_by = c("lon","lat"))
-{
-    # left_join on each dataframe and the reference_dataframe
-    out <- lapply(dataframe_list, function(x) left_join(x, reference_dataframe, by = join_by))
-    # Return
-    return(out)
-}
-
-################################################################################
-#' Fix latitude and longitude
-#'
 #' Align longitude and latitude values.
 #'
-#' If reformat = TRUE a "brute force" reformat is performed to match those in the reference_df.
-#' If shift = TRUE the values of longitude and latitude are assumed to be shifted by
-#' a negligible amount and replaced with those in the reference dataframe.
+#' If reformat = TRUE a "brute force" reformat is performed to match each longitude and latitude
+#' value to those in the reference dataframe reference_df.
 #'
-#' @param df_list a list of dplyr dataframe
-#' @param reference_df reference dataframe containing lon, lat, id_pixel, and groups.
-#' @param variable variable to be used in the reformatting process
+#' If shift = TRUE the values of longitude and latitude will be shifted. By default, longitude
+#' and latitude are assumed to be shifted by a negligible amount and replaced with those in
+#' the reference dataframe. If this is not the case, you can add the shift_amount argument to
+#' set the amount of the shifting.
+#'
+#' If both reformat and shift are set to FALSE, the df_list is simply returned without any changes.
+#'
+#' @param df_list a list of dplyr dataframes. For each dataframe in the list, longitude and latitude will be
+#' fixed.
+#' @param reference_df a reference dataframe that must contain at least longitude and latitude. A dataframe.
+#' @param variable variable to be used in the reformatting process. The values of this variable will
+#' be reordered according to the new longitude and latitude values. Character.
 #' @param reformat Should lon and lat be fixed from scratch? Boolean.
-#' @param shift Should lon and lat be shifted? Boolean
+#' @param shift Should lon and lat be shifted? Boolean.
+#' @param lon_lat_names name of longitude and latitude variables. A character vector.
+#' Example: by default lon_lat_names = c("lon", "lat")
+#' @param shift_amount a named list of two numbers. If longitude and latitude should be shifted, by how much should they be shifted?
+#'  By default shift_amount is set to NULL. If shift amount is set to NULL, longitude and latitude in the dataframe are replaced
+#'  by longitude and latitude in the reference dataframe. If you need to shift longitude and latitude by a fixed amount, simply set
+#'  the argument shift amount like this: list(lon = 1, lat = 2). In this case, longitude is shifted by adding 1 unit and latitude is shifted
+#'  by adding 2 units. Note that shift_amount is a list with specific names.
 #' @export
 #'
-format_lon_lat_list <- function(df_list, reference_df, variable=NULL, reformat = FALSE, shift = FALSE)
+format_lon_lat_list <- function(df_list, reference_df, variable = NULL, reformat = FALSE, shift = FALSE, lon_lat_names = c("lon", "lat"), shift_amount = NULL)
 {
-    # Do lon and lat in the df list need to be reformatted?
+    # Do lon and lat in the df list need to be reformatted or shifted?
     if(reformat)
     {
         # Reformat
-        out <- lapply(df_list, format_lon_lat, reference_df, variable)
+        out <- lapply(df_list, format_lon_lat, reference_df, variable, lon_lat_names)
     }
-    # Do they need to be shifted? (Fix if else)
+    # Do they need to be shifted?
     else if(shift)
     {
         # Shift
-        out <- lapply(df_list, shift_lon_lat, reference_df)
+        out <- lapply(df_list, shift_lon_lat, reference_df, lon_lat_names, shift_amount)
     }
     else
     {
@@ -155,44 +122,76 @@ format_lon_lat_list <- function(df_list, reference_df, variable=NULL, reformat =
 #'
 #' Simply replace lon and lat with those in the reference dataframe
 #'
-#' @param dataframe a dplyr dataframe
-#' @param reference_dataframe reference dataframe containing lon, lat, id_pixel, and groups.
+#' @param dataframe a dplyr dataframe.
+#' @param reference_df a reference dataframe that must contain at least longitude and latitude. A dataframe.
+#' @param lon_lat_names name of longitude and latitude variables. A character vector.
+#' Example: by default lon_lat_names = c("lon", "lat")
+#' @param shift_amount a named list of two numbers. If longitude and latitude should be shifted, by how much should they be shifted?
+#'  By default shift_amount is set to NULL. If shift amount is set to NULL, longitude and latitude in the dataframe are replaced
+#'  by longitude and latitude in the reference dataframe. If you need to shift longitude and latitude by a fixed amount, simply set
+#'  the argument shift amount like this: list(lon = 1, lat = 2). In this case, longitude is shifted by adding 1 unit and latitude is shifted
+#'  by adding 2 units. Note that shift_amount is a list with specific names.
 #' @export
 #'
-shift_lon_lat <- function(dataframe, reference_dataframe)
+shift_lon_lat <- function(dataframe, reference_df, lon_lat_names, shift_amount)
 {
-    # Replace lon and lat with the appropriate one from the reference df
-    # Shiftare per shiftare forse conviene mettere già quelle finali...
-    dataframe$lon <- reference_dataframe$lon
-    dataframe$lat <- reference_dataframe$lat
+    # Shift lon and lat
+    lon_name <- lon_lat_names[1]
+    lat_name <- lon_lat_names[2]
+
+    # Calculate the difference between reference values and actual values
+    lon_diff <- dataframe[[lon_name]] - reference_df[[lon_name]]
+    lat_diff <- dataframe[[lat_name]] - reference_df[[lat_name]]
+
+    # Check that pixel is shifted by the same amount. If this is not the case, then a shift cannot occur.
+    if( (length(unique(lon_diff)) != 1) | (length(unique(lat_diff)) != 1) ){ stop("Either lon or lat is not shiftable") }
+
+    # If no shift_amount is provided then replace lon and lat with those in the reference dataframe
+    if(is.null(shift_amount))
+    {
+        dataframe[[lon_name]] <- reference_df[[lon_name]]
+        dataframe[[lat_name]] <- reference_df[[lat_name]]
+    }else
+    {
+        dataframe[[lon_name]] <- dataframe[[lon_name]] + shift_amount$lon
+        dataframe[[lat_name]] <- dataframe[[lat_name]] + shift_amount$lat
+    }
+
     # Return
     return(dataframe)
 }
 
+## Da ottimizzare.
 ################################################################################
 #' Fix latitude and longitude
 #'
 #' A brute force approach is used to match latitude and longitude pairs and the corrisponding value of
 #' variable.
 #'
-#' @param dataframe a dplyr dataframe
-#' @param reference_df reference dataframe containing lon, lat, id_pixel, and groups.
-#' @param variable variable to be matched for each pair of longitude and latitude coordinates
+#' @param dataframe a dplyr dataframe.
+#' @param reference_df a reference dataframe that must contain at least longitude and latitude. A dataframe.
+#' @param variable variable to be used in the reformatting process. The values of this variable will
+#' be reordered according to the new longitude and latitude values. Character.
+#' @param lon_lat_names name of longitude and latitude variables. A character vector.
+#' Example: by default lon_lat_names = c("lon", "lat")
 #' @importFrom dplyr tbl_df
 #' @export
 #'
-format_lon_lat <- function(dataframe, reference_df, variable)
+format_lon_lat <- function(dataframe, reference_df, variable, lon_lat_names)
 {
     # Number of rows in the current dataframe. Should always equal 5520.
     number_of_rows <- nrow(dataframe)
 
+    lon_name <- lon_lat_names[1]
+    lat_name <- lon_lat_names[2]
+
     # Reference lat and lon
-    lon_riferimento <- reference_df$lon
-    lat_riferimento <- reference_df$lat
+    lon_riferimento <- reference_df[[lon_name]]
+    lat_riferimento <- reference_df[[lat_name]]
 
     # Lat and lon to be fixed
-    lon_disordinata <- dataframe$lon
-    lat_disordinata <- dataframe$lat
+    lon_disordinata <- dataframe[[lon_name]]
+    lat_disordinata <- dataframe[[lat_name]]
 
     # Variable to be matched
     valore <- dataframe[[variable]]
@@ -238,4 +237,69 @@ format_lon_lat <- function(dataframe, reference_df, variable)
     new_dataframe <- tbl_df(new_dataframe)
     # Return
     return(new_dataframe)
+}
+
+################################################################################
+#' Add id_pixel and kmeans groups from a reference dataframe. Make a left join.
+#'
+#' For each dataframe in the data_frame list, id_pixel and the group from the kmeans analysis
+#' is added. Note that the reference dataframe must contain longitude, latitude (lon and lat),
+#' id_pixel and groups.
+#'
+#' @param dataframe_list a list of dplyr dataframes
+#' @param reference_dataframe reference dataframe containing lon, lat, id_pixel, and groups.
+#' @param join_by variables to join by
+#' @importFrom dplyr left_join
+#' @export
+#'
+add_id_pixel_and_groups <- function(dataframe_list, reference_dataframe, join_by = c("lon","lat"))
+{
+    # left_join on each dataframe and the reference_dataframe
+    out <- lapply(dataframe_list, function(x) left_join(x, reference_dataframe, by = join_by))
+    # Return
+    return(out)
+}
+
+################################################################################
+#' Join data together
+#'
+#' Join multiple year data by lon, lat and year
+#' Then join single year data by lon and lat
+#'
+#' @param multiple_year_data a list of lists of dataframes. Each dataframe should contain observations of a single variable in a certain year.
+#' @param single_year_data a list of dplyr dataframes.
+#' @param m_year_join_by variables to join by (multiple year dataframes)
+#' @param s_year_join_by variables to join by (single_year_dataframes)
+#' @importFrom dplyr bind_rows left_join %>%
+#' @export
+#'
+join_data <- function(multiple_year_data, single_year_data, m_year_join_by = c("lon", "lat", "year"), s_year_join_by = c("lon", "lat"))
+{
+    # Stack each set of observations in a single dataframe
+    multiple_year_data <- lapply(multiple_year_data, bind_rows)
+
+    # Join multiple year dataframes together
+    m_data <- multiple_year_data[[1]]
+    if(length(m_data > 1))
+    {
+        for(i in 2:length(multiple_year_data))
+        {
+            m_data <- left_join(m_data, multiple_year_data[[i]], by = m_year_join_by)
+        }
+     }
+
+    # Join multiple year dataframes together
+    s_data <- single_year_data[[1]]
+    if(length(single_year_data) > 1)
+    {
+        for(i in 2:length(single_year_data))
+        {
+            s_data <- left_join(s_data, single_year_data[[i]], by = s_year_join_by)
+        }
+    }
+
+    # Join in a single dataframe
+    data <- left_join(m_data, s_data, by = s_year_join_by)
+    # Return
+    return(data)
 }

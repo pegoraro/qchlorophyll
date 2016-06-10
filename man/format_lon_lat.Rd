@@ -4,14 +4,18 @@
 \alias{format_lon_lat}
 \title{Fix latitude and longitude}
 \usage{
-format_lon_lat(dataframe, reference_df, variable)
+format_lon_lat(dataframe, reference_df, variable, lon_lat_names)
 }
 \arguments{
-\item{dataframe}{a dplyr dataframe}
+\item{dataframe}{a dplyr dataframe.}
 
-\item{reference_df}{reference dataframe containing lon, lat, id_pixel, and groups.}
+\item{reference_df}{a reference dataframe that must contain at least longitude and latitude. A dataframe.}
 
-\item{variable}{variable to be matched for each pair of longitude and latitude coordinates}
+\item{variable}{variable to be used in the reformatting process. The values of this variable will
+be reordered according to the new longitude and latitude values. Character.}
+
+\item{lon_lat_names}{name of longitude and latitude variables. A character vector.
+Example: by default lon_lat_names = c("lon", "lat")}
 }
 \description{
 A brute force approach is used to match latitude and longitude pairs and the corrisponding value of

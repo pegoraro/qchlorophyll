@@ -14,7 +14,8 @@ Imports:
     ggplot2,
     clusterSim,
     mice,
-    lattice
+    lattice,
+    randomForest
 License: GPL-3
 LazyData: TRUE
 RoxygenNote: 5.0.1

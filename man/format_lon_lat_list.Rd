@@ -2,28 +2,44 @@
 % Please edit documentation in R/load-random-forest-data.R
 \name{format_lon_lat_list}
 \alias{format_lon_lat_list}
-\title{Fix latitude and longitude}
+\title{Align longitude and latitude values.}
 \usage{
 format_lon_lat_list(df_list, reference_df, variable = NULL,
-  reformat = FALSE, shift = FALSE)
+  reformat = FALSE, shift = FALSE, lon_lat_names = c("lon", "lat"),
+  shift_amount = NULL)
 }
 \arguments{
-\item{df_list}{a list of dplyr dataframe}
+\item{df_list}{a list of dplyr dataframes. For each dataframe in the list, longitude and latitude will be
+fixed.}
 
-\item{reference_df}{reference dataframe containing lon, lat, id_pixel, and groups.}
+\item{reference_df}{a reference dataframe that must contain at least longitude and latitude. A dataframe.}
 
-\item{variable}{variable to be used in the reformatting process}
+\item{variable}{variable to be used in the reformatting process. The values of this variable will
+be reordered according to the new longitude and latitude values. Character.}
 
 \item{reformat}{Should lon and lat be fixed from scratch? Boolean.}
 
-\item{shift}{Should lon and lat be shifted? Boolean}
+\item{shift}{Should lon and lat be shifted? Boolean.}
+
+\item{lon_lat_names}{name of longitude and latitude variables. A character vector.
+Example: by default lon_lat_names = c("lon", "lat")}
+
+\item{shift_amount}{a named list of two numbers. If longitude and latitude should be shifted, by how much should they be shifted?
+By default shift_amount is set to NULL. If shift amount is set to NULL, longitude and latitude in the dataframe are replaced
+by longitude and latitude in the reference dataframe. If you need to shift longitude and latitude by a fixed amount, simply set
+the argument shift amount like this: list(lon = 1, lat = 2). In this case, longitude is shifted by adding 1 unit and latitude is shifted
+by adding 2 units. Note that shift_amount is a list with specific names.}
 }
 \description{
-Align longitude and latitude values.
+If reformat = TRUE a "brute force" reformat is performed to match each longitude and latitude
+value to those in the reference dataframe reference_df.
 }
 \details{
-If reformat = TRUE a "brute force" reformat is performed to match those in the reference_df.
-If shift = TRUE the values of longitude and latitude are assumed to be shifted by
-a negligible amount and replaced with those in the reference dataframe.
+If shift = TRUE the values of longitude and latitude will be shifted. By default, longitude
+and latitude are assumed to be shifted by a negligible amount and replaced with those in
+the reference dataframe. If this is not the case, you can add the shift_amount argument to
+set the amount of the shifting.
+
+If both reformat and shift are set to FALSE, the df_list is simply returned without any changes.
 }
 

@@ -41,6 +41,7 @@ require(qchlorophyll)
 setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/dati_random_forest")
 path <- getwd()
 
+#-------------------------------------------------------------------------------
 # Carico df di riferimento (è quello dei cluster)
 # new_x
 
@@ -60,14 +61,14 @@ dfs_par <- load_all_csv(main_folder_path = path, folder = "PAR", starts_with = "
 bat <- load_a_single_csv(file_path = "BAT/BAT.csv")
 clusters <- load_a_single_csv(file_path = "gruppi_kmeans.csv")
 
-
+#-------------------------------------------------------------------------------
 # Aggiustamento latitudine e longitudine
 
-dfs_bs2 <- format_lon_lat_list(df_list = dfs_bs, variable = "bs", reference_df = new_x, reformat=FALSE)
-dfs_ws2 <- format_lon_lat_list(df_list = dfs_ws, variable = "wind", reference_df = new_x, reformat=TRUE)
-dfs_sst2 <- format_lon_lat_list(df_list = dfs_sst, variable = "sst", reference_df = new_x, reformat=TRUE)
+dfs_bs2 <- format_lon_lat_list(df_list = dfs_bs, variable = "bs", reference_df = new_x, reformat = FALSE)
+dfs_ws2 <- format_lon_lat_list(df_list = dfs_ws, variable = "wind", reference_df = new_x, reformat = TRUE)
+dfs_sst2 <- format_lon_lat_list(df_list = dfs_sst, variable = "sst", reference_df = new_x, reformat = TRUE)
 dfs_sss2 <- format_lon_lat_list(df_list = dfs_sss, variable = "sss", reference_df = new_x, shift = TRUE)
-dfs_sic2 <- format_lon_lat_list(df_list = dfs_sic, variable = "sic", reference_df = new_x, reformat=TRUE)
+dfs_sic2 <- format_lon_lat_list(df_list = dfs_sic, variable = "sic", reference_df = new_x, reformat = TRUE)
 dfs_par2 <- format_lon_lat_list(df_list = dfs_par, variable = "par", reference_df = new_x, reformat = FALSE)
 
 # Aggiunta id_pixel e gruppo clustering
@@ -76,8 +77,9 @@ dfs_ws3 <- add_id_pixel_and_groups(dfs_ws2, reference_dataframe = new_x)
 dfs_sst3 <- add_id_pixel_and_groups(dfs_sst2, reference_dataframe = new_x)
 dfs_sss3 <- add_id_pixel_and_groups(dfs_sss2, reference_dataframe = new_x)
 dfs_sic3 <- add_id_pixel_and_groups(dfs_sic2, reference_dataframe = new_x)
-dfs_par3 <- add_id_pixel_and_groups(dfs_par3, reference_dataframe = new_x)
+dfs_par3 <- add_id_pixel_and_groups(dfs_par2, reference_dataframe = new_x)
 
-
-# Row bind and join. Da implementare.
-#final_df <- unify_data(multiyear_df = list(dfs_par3, ...), single_values_df = list(bat), reference_df = new_x )
+# Row bind and join. Funziona ma e' da sistemare
+final_df <- join_data(multiple_year_data = list(dfs_bs2, dfs_ws2, dfs_sst2, dfs_sss2, dfs_sic2, dfs_par2),
+                      single_year_data = list(bat, new_x))
+View(final_df)

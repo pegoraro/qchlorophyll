@@ -4,12 +4,21 @@
 \alias{shift_lon_lat}
 \title{Shift lon and lat}
 \usage{
-shift_lon_lat(dataframe, reference_dataframe)
+shift_lon_lat(dataframe, reference_df, lon_lat_names, shift_amount)
 }
 \arguments{
-\item{dataframe}{a dplyr dataframe}
+\item{dataframe}{a dplyr dataframe.}
 
-\item{reference_dataframe}{reference dataframe containing lon, lat, id_pixel, and groups.}
+\item{reference_df}{a reference dataframe that must contain at least longitude and latitude. A dataframe.}
+
+\item{lon_lat_names}{name of longitude and latitude variables. A character vector.
+Example: by default lon_lat_names = c("lon", "lat")}
+
+\item{shift_amount}{a named list of two numbers. If longitude and latitude should be shifted, by how much should they be shifted?
+By default shift_amount is set to NULL. If shift amount is set to NULL, longitude and latitude in the dataframe are replaced
+by longitude and latitude in the reference dataframe. If you need to shift longitude and latitude by a fixed amount, simply set
+the argument shift amount like this: list(lon = 1, lat = 2). In this case, longitude is shifted by adding 1 unit and latitude is shifted
+by adding 2 units. Note that shift_amount is a list with specific names.}
 }
 \description{
 Simply replace lon and lat with those in the reference dataframe

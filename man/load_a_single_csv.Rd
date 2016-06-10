@@ -7,9 +7,9 @@
 load_a_single_csv(file_path, ...)
 }
 \arguments{
-\item{file_path}{path to .csv file}
+\item{file_path}{path to .csv file to load.}
 
-\item{...}{other arguments to read.csv}
+\item{...}{other arguments to be used by the read.csv function}
 }
 \description{
 Load a single .csv file and output a dplyr dataframe
