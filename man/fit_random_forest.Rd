@@ -4,29 +4,23 @@
 \alias{fit_random_forest}
 \title{Fit a random forest model}
 \usage{
-fit_random_forest(formula, data, ntree = 1000, na.action = "na.impute",
-  importance = "none", seed = NULL, ...)
+fit_random_forest(formula, data, ntree = 1000, na.action = na.omit,
+  importance = TRUE, seed = NULL, ...)
 }
 \arguments{
 \item{formula}{A formula for the random forest such as y~x.}
 
 \item{data}{Data to be used.}
 
-\item{ntree}{Number of trees to grow. This should not be set to too small .}
+\item{ntree}{Number of trees to grow. This should not be set to too small.}
 
-\item{na.action}{taken if the data contains NA's. Possible values are na.omit or na.impute.
-The default na.omit removes the entire record if even one of its entries is NA
- (for x-variables this applies only to those specifically listed in 'formula').
- Selecting na.impute imputes the data. See documentation of randomForestSRC::rfsrc for
- more details regarding missing data imputation.}
+\item{na.action}{A function to specify the action to be taken if NAs are found}
 
-\item{importance}{Method for computing variable importance (VIMP).
-Calculating VIMP can be computationally expensive when the number of variables is high.
-The defalut action is importance="none".}
+\item{importance}{Should importance of predictors be assessed? Boolean}
 
 \item{seed}{Random seed for reproducibility purposes.}
 
-\item{...}{Other arguments passed to the randomForestSRC::rfsrc}
+\item{...}{Other arguments passed to the randomForest::randomForest function}
 }
 \description{
 Fit a random forest model

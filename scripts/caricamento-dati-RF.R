@@ -1,31 +1,3 @@
-# Funziona con qchlorophyll ver 0.4
-require(qchlorophyll)
-
-setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/dati_random_forest")
-path <- getwd()
-
-##########################################################################################
-##########################################################################################
-
-# df di riferimento (è quello dei cluster)
-# new_x
-
-# Step 1 caricamento lista
-### PAR: lon e lat ok
-dfs_par <- load_all_csv(main_folder_path = path, folder = "PAR", starts_with = "PAR_", years = c("2011", "2012", "2013", "2014"))
-
-# Step 2 verifica coerenza lon - lat / aggiustamento
-dfs_par <- format_lon_lat_list(df_list = dfs_par, reference_df = new_x, reformat = FALSE)
-
-# Step 3 aggiunta id_pixel e gruppi cluster. Forse qui conviene fare join anche con batimetria.
-# Faccio un join con l'id_pixel e il gruppo ottenuto dal kmeans. Poi dovro fare un join con le altre variabili.
-# dopo faccio un rbind di tutti i df.
-#dfs_par2 <- lapply(dfs_par, function(x) left_join(x, new_x, by = c("lon","lat")))
-dfs_par2 <- add_id_pixel_and_groups(dfs_par, reference_dataframe = new_x)
-
-# Step 4 rbind e join
-# da implementare
-
 ### SIC: lon e lat differenze pattern non noto
 ### SSS: differenze! lon e lat shiftati di 0.125. (dfs_sss[[1]]$lat - new_x$lat)[1] ritorna 0.125
 ### SST: differenze! lon e lat differenze pattern non noto
@@ -43,7 +15,7 @@ path <- getwd()
 
 ################################################################################
 # Carico df di riferimento (è quello dei cluster)
-# new_x
+new_x
 
 ################################################################################
 # Carico tutti i csv annuali
@@ -91,13 +63,12 @@ View(final_df)
 
 ################################################################################
 # RF model
-model <- fit_random_forest(formula = bs~sst+sic+gruppo, data = final_df, seed = 500)
+data <- na.omit(final_df)
 
-# Variable importance plot
-variable_importance_plot(model)
+model <- fit_random_forest(formula = bs~sst+sic+gruppo, data = data, seed = 500)
+plot_error_vs_trees(model, "Model error vs number of trees")
+variable_importance_plot(rf_model = model)
+get_variable_importance(rf_model = model)
 
-# Minimal depth plot
-minimal_depth_plot(model)
+partial_dependence_plot(model,data2, mfrow = c(1,3))
 
-# Partial dependence plot. Lento....
-partial_dependence_plot(model, data = NULL)

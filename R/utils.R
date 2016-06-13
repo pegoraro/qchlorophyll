@@ -140,7 +140,7 @@ fix_coordinates <- function(nc, coordinates, spare_coordinates)
     # Check existance of spare_coordinates. Returns boolean vector
     condition_2 <- sapply(spare_coordinates, function(x) exists(x, get("dim", nc)), USE.NAMES = F)
     # Select coordinates names according to their existance inside the .nc file
-    existing_coordinates <- c(coordinates[condition_1], coordinates[condition_2])
+    existing_coordinates <- c(coordinates[condition_1], spare_coordinates[condition_2])
     #print(condition_1)
     #print(condition_2)
     #print(existing_coordinates)
