@@ -8,6 +8,7 @@
 ########################################################################################
 ########################################################################################
 # Funziona con qchlorophyll ver 0.4
+
 require(qchlorophyll)
 
 setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/dati_random_forest")
@@ -20,7 +21,7 @@ new_x
 ################################################################################
 # Carico tutti i csv annuali
 
-# Bloom start, wind, sst, sss, sic, par. Ottengo una lista di dataframe per ogni chiamata.
+# Ottengo una lista di dataframe per ogni chiamata.
 dfs_bs <- load_all_csv(main_folder_path = path, folder = "BS", starts_with = "BS_", years = c("2011", "2012", "2013", "2014"))
 dfs_ws <- load_all_csv(main_folder_path = path, folder = "WS", starts_with = "WIND_", years = c("2011", "2012", "2013", "2014"))
 dfs_sst <- load_all_csv(main_folder_path = path, folder = "SST", starts_with = "SST_", years = c("2011", "2012", "2013", "2014"))
@@ -29,8 +30,6 @@ dfs_sic <- load_all_csv(main_folder_path = path, folder = "SIC", starts_with = "
 dfs_par <- load_all_csv(main_folder_path = path, folder = "PAR", starts_with = "PAR_", years = c("2011", "2012", "2013", "2014"))
 
 # Caricamento .csv singoli
-
-# Batimetria, clustering (dataframe di riferimento)
 bat <- load_a_single_csv(file_path = "BAT/BAT.csv")
 clusters <- load_a_single_csv(file_path = "gruppi_kmeans.csv")
 
@@ -55,20 +54,44 @@ dfs_sic3 <- add_id_pixel_and_groups(dfs_sic2, reference_dataframe = new_x)
 dfs_par3 <- add_id_pixel_and_groups(dfs_par2, reference_dataframe = new_x)
 
 ################################################################################
-# Row bind and join. Funziona
+# Row bind and join
 
 final_df <- join_data(multiple_year_data = list(dfs_bs2, dfs_ws2, dfs_sst2, dfs_sss2, dfs_sic2, dfs_par2),
                       single_year_data = list(bat, new_x))
-View(final_df)
+#View(final_df)
+
+# Keep only pixels for which the group has been calculated. 1992 righe -> 492 pixel per 4 anni.
+# Su 1992, 619 bloom start sono NA.......
+final_df <- keep_pixels_with_group(final_df, group_name = "gruppo")
+
+# Clean environment
+rm(dfs_par3,dfs_sic3,dfs_sss3,dfs_sst3,dfs_ws3,dfs_bs3,
+   dfs_par2,dfs_sic2,dfs_sss2,dfs_sst2,dfs_ws2,dfs_bs2,
+   dfs_par,dfs_sic,dfs_sss,dfs_sst,dfs_ws,dfs_bs,
+   bat,clusters)
 
 ################################################################################
 # RF model
-data <- na.omit(final_df)
 
-model <- fit_random_forest(formula = bs~sst+sic+gruppo, data = data, seed = 500)
+# Fit random forest. 2000 alberi sembrano più che sufficienti per avere mse piu o meno costante
+model <- fit_random_forest(formula = bs~., data = final_df, seed = 500, ntree = 2000, do.trace = TRUE, na.action = na.omit)
+
+# Plot of error vs number of trees
 plot_error_vs_trees(model, "Model error vs number of trees")
-variable_importance_plot(rf_model = model)
+
+# Plot of variable importance
 get_variable_importance(rf_model = model)
 
-partial_dependence_plot(model,data2, mfrow = c(1,3))
+# Plot of variable importance
+variable_importance_plot(rf_model = model)
 
+#--------------------
+# Problemi da qui...
+
+# Plot of partial variable dependence
+partial_dependence_plot(model,final_df)
+xa <- "sic"
+a <- randomForest::partialPlot(x = model, pred.data = as.data.frame(final_df), x.var = "sic", plot=FALSE)
+
+# Mappa predittiva
+predictive_map(model, data_)

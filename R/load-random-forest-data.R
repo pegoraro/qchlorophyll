@@ -303,3 +303,18 @@ join_data <- function(multiple_year_data, single_year_data, m_year_join_by = c("
     # Return
     return(data)
 }
+
+################################################################################
+#' Filter out pixels that have no group assigned
+#'
+#' @param data a dplyr dataframe
+#' @param group_name name of the variable containing the group information
+#' @importFrom dplyr filter_ %>%
+#' @importFrom lazyeval interp
+#' @export
+#'
+keep_pixels_with_group <- function(data, group_name = "gruppo")
+{
+    filtered_df <- data %>% filter_(interp( ~!is.na(x), x = as.name(group_name)) )
+    return(filtered_df)
+}

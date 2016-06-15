@@ -36,7 +36,9 @@ fit_random_forest <- function(formula, data, ntree = 1000, na.action = na.omit, 
 #'
 get_variable_importance <- function(rf_model)
 {
+    # Get variable importance
     var_imp <- importance(rf_model)
+    # Return
     return(var_imp)
 }
 
@@ -52,6 +54,7 @@ get_variable_importance <- function(rf_model)
 #'
 variable_importance_plot <- function(rf_model, title = "Variable importance plot", sort = TRUE, ...)
 {
+    # Plot variable importance
     varImpPlot(rf_model, main = title, sort = sort, ...)
 }
 
@@ -64,10 +67,16 @@ variable_importance_plot <- function(rf_model, title = "Variable importance plot
 #'
 plot_error_vs_trees <- function(rf_model, title)
 {
+    # Model error vs number of trees
     plot(rf_model, main = title)
 }
 
-# Da sistemare
+
+
+
+
+
+# Non va
 ################################################################################
 #' Partial dependence plot
 #'
@@ -76,25 +85,33 @@ plot_error_vs_trees <- function(rf_model, title)
 #' @importFrom randomForest partialPlot importance
 #' @export
 #'
-partial_dependence_plot <- function(rf_model, data, mfrow = NULL, mfcol = NULL)
+partial_dependence_plot <- function(rf_model, data)
 {
+    data <- as.data.frame(data)
     imp <- importance(rf_model)
     impvar <- rownames(imp)[order(imp[, 1], decreasing = TRUE)]
-    op <- par(mfrow=mfrow)
 
-    data <- as.data.frame(data)
+    data_out <- list()
 
-    for (i in 1:length(impvar))
+    var.env <- new.env()
+
+    for (i in seq_along(impvar))
     {
-        partialPlot(rf_model,
-                    data,
-                    impvar[i],
-                    xlab = impvar[i],
-                    main = paste("Partial Dependence on", impvar[i]) )
+        var <- impvar[i]
+        print(eval(var, envir = environment()))
+        partial_dep_data <- partialPlot(rf_model,
+                    pred.data = data,
+                    x.var = eval(var, envir = environment()), #eval(var, envir = environment()),
+                    n.pt = 10,
+                    plot=F)
+
+        data_out[var] <- partial_dep_data
     }
+
+    return(data_out)
 }
 
-# Da sistemare
+# Non va
 ################################################################################
 #' Plot predictive map
 #'
@@ -108,12 +125,15 @@ predictive_map <- function(rf_model, data)
 {
     x <- unique(data$lon)
     y <- unique(data$lat)
-    z <- predict(rf_model, data)# Bisognerebbe fare una griglia
+    #z__ <- predict(rf_model, data)# Bisognerebbe fare una griglia
     grid <- expand.grid(x,y)
-    grid$z <- z[1:312]
-    return(grid)
-    ggp <- ggplot(grid, aes(x = x, y = y, z = z)) +
-        geom_tile(aes(fill = z)) +
+    grid$value <- as.numeric(1:754)
+    print(head(grid))
+    print(dim(grid))
+
+    ggp <- ggplot(grid, aes(x = x, y = y, z = value)) +
+        geom_tile(aes(fill = value)) +
         stat_contour()
+
     print(ggp)
 }
