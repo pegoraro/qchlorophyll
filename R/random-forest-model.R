@@ -117,23 +117,38 @@ partial_dependence_plot <- function(rf_model, data)
 #'
 #' @param rf_model random forest model obtained from the function fit_random_forest.
 #' @param data data used to fit the random forest model
+#' @param facet_by_year boolean scalar
 #' @importFrom randomForest partialPlot importance
-#' @importFrom ggplot2 ggplot aes geom_tile stat_contour
+#' @importFrom ggplot2 ggplot aes geom_tile stat_contour facet_wrap
+#' @importFrom dplyr
 #' @export
 #'
-predictive_map <- function(rf_model, data)
+predictive_map <- function(rf_model, data, facet_by_year=FALSE)
 {
-    x <- unique(data$lon)
-    y <- unique(data$lat)
-    #z__ <- predict(rf_model, data)# Bisognerebbe fare una griglia
-    grid <- expand.grid(x,y)
-    grid$value <- as.numeric(1:754)
-    print(head(grid))
-    print(dim(grid))
+    # x <- unique(data$lon)
+    # y <- unique(data$lat)
+    z <- predict(rf_model, data)# Bisognerebbe fare una griglia
+    # grid <- expand.grid(x,y)
 
-    ggp <- ggplot(grid, aes(x = x, y = y, z = value)) +
+    data <- cbind(data,pred=z)
+
+    # grid$value <- as.numeric(1:754)
+    # print(head(grid))
+    # print(dim(grid))
+
+    if(!facet_by_year){
+        data <- data %>%
+            select(lon,lat,pred) %>%
+            group_by(lon,lat) %>%
+            summarise(mean(pred), na.rm=TRUE) %>%
+            mutate(year="Average of years")
+    }
+
+
+    ggp <- ggplot(data, aes(x = x, y = y, z = value)) +
         geom_tile(aes(fill = value)) +
-        stat_contour()
+        stat_contour() +
+        facet_wrap(~year)
 
     print(ggp)
 }
