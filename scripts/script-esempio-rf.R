@@ -6,7 +6,6 @@
 ### BAT: lon e lat ok
 
 ########################################################################################
-########################################################################################
 # Funziona con qchlorophyll ver 0.4
 
 require(qchlorophyll)
@@ -15,8 +14,9 @@ setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/dati_random_forest")
 path <- getwd()
 
 ################################################################################
-# Carico df di riferimento (è quello dei cluster)
-new_x
+# Carico df di riferimento (è quello dei cluster esportabile direttamente in .csv
+# con la nuova funzione qcholorphyll::export_data)
+new_x <- load_a_single_csv("gruppi_kmeans.csv")
 
 ################################################################################
 # Carico tutti i csv annuali
@@ -34,7 +34,7 @@ bat <- load_a_single_csv(file_path = "BAT/BAT.csv")
 clusters <- load_a_single_csv(file_path = "gruppi_kmeans.csv")
 
 ################################################################################
-# Aggiustamento latitudine e longitudine
+# Aggiustamento latitudine e longitudine (può richiedere un pò di tempo)
 
 dfs_bs2 <- format_lon_lat_list(df_list = dfs_bs, variable = "bs", reference_df = new_x, reformat = FALSE)
 dfs_ws2 <- format_lon_lat_list(df_list = dfs_ws, variable = "wind", reference_df = new_x, reformat = TRUE)
@@ -54,42 +54,50 @@ dfs_sic3 <- add_id_pixel_and_groups(dfs_sic2, reference_dataframe = new_x)
 dfs_par3 <- add_id_pixel_and_groups(dfs_par2, reference_dataframe = new_x)
 
 ################################################################################
-# Row bind and join
+# Unione in un dataframe unico
 
 final_df <- join_data(multiple_year_data = list(dfs_bs2, dfs_ws2, dfs_sst2, dfs_sss2, dfs_sic2, dfs_par2),
                       single_year_data = list(bat, new_x))
 #View(final_df)
 
-# Keep only pixels for which the group has been calculated. 1992 righe -> 492 pixel per 4 anni.
-# Su 1992, 619 bloom start sono NA.......
+# Teniamo solo i pixel dove abbiamo fatto il clustering
 final_df <- keep_pixels_with_group(final_df, group_name = "gruppo")
 
-# Clean environment
+# Rimuoviamo variabili non più usate
 rm(dfs_par3,dfs_sic3,dfs_sss3,dfs_sst3,dfs_ws3,dfs_bs3,
    dfs_par2,dfs_sic2,dfs_sss2,dfs_sst2,dfs_ws2,dfs_bs2,
    dfs_par,dfs_sic,dfs_sss,dfs_sst,dfs_ws,dfs_bs,
    bat,clusters)
 
 ################################################################################
-# RF model
+################################################################################
+# Modello random forest
 
-# Fit random forest. 2000 alberi sembrano più che sufficienti per avere mse piu o meno costante
+# Fit del modello: 2000 alberi sono più che sufficienti (si vede dal plot sotto).
 model <- fit_random_forest(formula = bs~., data = final_df, seed = 500, ntree = 2000, do.trace = TRUE, na.action = na.omit)
-# Plot of error vs number of trees
-plot_error_vs_trees(model, "Model error vs number of trees")
-# Plot of variable importance
+
+# Plot errore vs numero alberi
+plot_error_vs_trees(rf_model = model, "Model error vs number of trees")
+
+# Plot importanza variabili
 get_variable_importance(rf_model = model)
-# Plot of variable importance
+
+# Plot importanza variabili
 variable_importance_plot(rf_model = model)
-# Get partial dependence data
+
+# Ottieni dati dipendenza parziale
 pd_data <- partial_dependence_plot(model, data = final_df)
-# Plots of partial dependence
+
+# Plots della dipendenza parziale su tutte le variabili
 partial_dependence_plot(model, data = final_df, show_plots = TRUE, cols = 2)
-# Single partial dependence plot (on sst for example)
+
+# Plot dipendenza parziale su variabile a scelta
 single_partial_dependence_plot(model, final_df, "sst", ylabel = "bs")
+
 # Mappa predittiva. Previsione media su tutti gli anni.
 mp1 <- predictive_map(model, final_df)
 print(mp1)
+
 # Mappa predittiva. Previsione per ogni anno e faceting
 mp2 <- predictive_map(model, final_df, facet_by_year = TRUE)
 print(mp2)

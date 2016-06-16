@@ -19,7 +19,8 @@ partial_dependence_plot(rf_model, data, show_plots = FALSE, cols = 2,
 \item{ylabel}{label of the y axis. Character. Defaults to "y".}
 }
 \value{
-a list with x and y values for the partial dependence graph for each variable
+a list with x and y values for the partial dependence graph for each variable. If show_plots
+is TRUE, NULL is returned.
 }
 \description{
 Partial dependence plot

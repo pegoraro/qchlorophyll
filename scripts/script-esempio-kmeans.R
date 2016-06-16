@@ -19,7 +19,7 @@ require(qchlorophyll)
 
 # Path
 nc_files_path <- "/home/data_nc"
-nc_files_path <- getwd()
+nc_files_path <- "/home/mich/quantide/packages_R/qchlorophyll_/dati/CHL_8D"
 # Carico file .nc ed estraggo CHL1_mean
 nc_files_list <- load_all_as_list(path = nc_files_path, variables = c("CHL1_mean"))
 # Unisco il tutto in un unico dataframe.
@@ -103,27 +103,10 @@ plot_results(kmeans_results)
 
 final_kmeans_results <- extract_results(kmeans_results)
 
+################################################################################
+# Export dati kmeans nella current working directory
+
+export_data(x, nc_dataframe, final_kmeans_results, "gruppi_kmeans.csv")
+
 # Fine script esempio
 ################################################################################
-
-
-
-################################################################################
-# Raccordo gruppi kmeans. Assegno il gruppo ottenuto con kmeans ad ogni pixel.
-
-# Assegno variabile gruppo nel dataframe dei pixel selezionati (x)
-x$gruppo <- final_kmeans_results$cluster
-x
-
-new_nc <- nc_dataframe %>% select(lon,lat,id_pixel) %>% distinct()
-new_nc
-
-new_x <- x %>% select(lon,lat,id_pixel, gruppo) %>% full_join(new_nc, by = c("id_pixel", "lon", "lat")) %>% arrange(id_pixel)
-View(new_x)
-
-sum(new_x$lon != media_reshaped[[1]]$lon)
-sum(new_x$lat != media_reshaped[[1]]$lat)
-sum(new_x$id_pixel != media_reshaped[[1]]$id_pixel)
-sum(is.na(new_x$gruppo))
-
-write.csv(new_x,"gruppi_kmeans.csv")

@@ -205,3 +205,34 @@ extract_results <- function(kmeans_results)
     # Return
     return(best_results)
 }
+
+################################################################################
+#' Extract results from the kmeans analysis
+#'
+#' This function is used to extract the best results from the kmeans analysis.
+#' The best result is considered to be the result characterized by the highest
+#' Calinski-Harabasz index.
+#'
+#' @param x dataframe used in the kmeans analysis (prior to standardization)
+#' @param nc_dataframe main dataframe
+#' @param final_kmeans_results list of the final results obtained from the function extract_results
+#' @param filename name of the .csv file to export
+#' @param export_vars variables to export. A list of characters
+#' @param join_by variables to join by. A vector of characters
+#' @param unique_id a list of unique identifiers
+#' @importFrom dplyr %>% select_ full_join distinct arrange
+#' @export
+#'
+export_data <- function(x, nc_dataframe, final_kmeans_results, filename, export_vars = list("lon", "lat", "id_pixel", "gruppo"), join_by = c("id_pixel", "lon", "lat"), unique_id = list("lon", "lat", "id_pixel"))
+{
+    # Attach cluster
+    x$gruppo <- final_kmeans_results$cluster
+    # Select unique lon lat and idpixel from main dataframe
+    new_nc <- nc_dataframe %>% select_(.dots = unique_id) %>% distinct()
+    # Select only variables to export and join
+    new_x <- x %>% select_(.dots = export_vars) %>% full_join(new_nc, by = join_by) %>% arrange(id_pixel)
+    # Write data to csv
+    write.csv(new_x, filename, row.names = FALSE)
+    # Print
+    print("Data written to file successfully!")
+}
