@@ -16,6 +16,7 @@ Imports:
     mice,
     lattice,
     randomForest,
+    grid,
     lazyeval
 License: GPL-3
 LazyData: TRUE

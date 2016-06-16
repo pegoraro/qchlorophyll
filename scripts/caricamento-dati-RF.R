@@ -75,23 +75,21 @@ rm(dfs_par3,dfs_sic3,dfs_sss3,dfs_sst3,dfs_ws3,dfs_bs3,
 
 # Fit random forest. 2000 alberi sembrano più che sufficienti per avere mse piu o meno costante
 model <- fit_random_forest(formula = bs~., data = final_df, seed = 500, ntree = 2000, do.trace = TRUE, na.action = na.omit)
-
 # Plot of error vs number of trees
 plot_error_vs_trees(model, "Model error vs number of trees")
-
 # Plot of variable importance
 get_variable_importance(rf_model = model)
-
 # Plot of variable importance
 variable_importance_plot(rf_model = model)
-
-#--------------------
-# Problemi da qui...
-
-# Plot of partial variable dependence
-partial_dependence_plot(model,final_df)
-xa <- "sic"
-a <- randomForest::partialPlot(x = model, pred.data = as.data.frame(final_df), x.var = "sic", plot=FALSE)
-
-# Mappa predittiva
-predictive_map(model, data_)
+# Get partial dependence data
+pd_data <- partial_dependence_plot(model, data = final_df)
+# Plots of partial dependence
+partial_dependence_plot(model, data = final_df, show_plots = TRUE, cols = 2)
+# Single partial dependence plot (on sst for example)
+single_partial_dependence_plot(model, final_df, "sst", ylabel = "bs")
+# Mappa predittiva. Previsione media su tutti gli anni.
+mp1 <- predictive_map(model, final_df)
+print(mp1)
+# Mappa predittiva. Previsione per ogni anno e faceting
+mp2 <- predictive_map(model, final_df, facet_by_year = TRUE)
+print(mp2)

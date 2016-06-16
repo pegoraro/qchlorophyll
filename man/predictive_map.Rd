@@ -4,12 +4,18 @@
 \alias{predictive_map}
 \title{Plot predictive map}
 \usage{
-predictive_map(rf_model, data)
+predictive_map(rf_model, data, facet_by_year = FALSE,
+  lon_lat_names = list("lon", "lat"))
 }
 \arguments{
 \item{rf_model}{random forest model obtained from the function fit_random_forest.}
 
 \item{data}{data used to fit the random forest model}
+
+\item{facet_by_year}{boolean. If false a mean of all the predictions over all the years is computed
+and plotted, otherwise a prediction for each year is computed and plotted.}
+
+\item{lon_lat_names}{names of latitude and longitude in the dataset. A list of characters. Defaults to list("lon", "lat")}
 }
 \description{
 Plot predictive map

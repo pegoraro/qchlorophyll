@@ -4,12 +4,22 @@
 \alias{partial_dependence_plot}
 \title{Partial dependence plot}
 \usage{
-partial_dependence_plot(rf_model, data)
+partial_dependence_plot(rf_model, data, show_plots = FALSE, cols = 2,
+  ylabel = "y")
 }
 \arguments{
 \item{rf_model}{random forest model obtained from the function fit_random_forest.}
 
 \item{data}{data used to fit the random forest model}
+
+\item{show_plots}{should plots be showed? Boolean}
+
+\item{cols}{number of columns to use when plotting the dependence plots. Defaults to 2.}
+
+\item{ylabel}{label of the y axis. Character. Defaults to "y".}
+}
+\value{
+a list with x and y values for the partial dependence graph for each variable
 }
 \description{
 Partial dependence plot
