@@ -79,6 +79,7 @@ plot_error_vs_trees <- function(rf_model, title)
 #' @param show_plots should plots be showed? Boolean
 #' @param cols number of columns to use when plotting the dependence plots. Defaults to 2.
 #' @param ylabel label of the y axis. Character. Defaults to "y".
+#' @param verbose be verbose? Boolean.
 #' @importFrom randomForest importance
 #' @importFrom ggplot2 ggplot geom_line geom_label xlab ggtitle ylab
 #' @export
@@ -86,7 +87,7 @@ plot_error_vs_trees <- function(rf_model, title)
 #' @return a list with x and y values for the partial dependence graph for each variable. If show_plots
 #' is TRUE, NULL is returned.
 #'
-partial_dependence_plot <- function(rf_model, data, show_plots = FALSE, cols = 2, ylabel = "y")
+partial_dependence_plot <- function(rf_model, data, show_plots = FALSE, cols = 2, ylabel = "y", verbose = FALSE)
 {
     # Convert data to a dataframe
     data <- as.data.frame(data)
@@ -103,7 +104,8 @@ partial_dependence_plot <- function(rf_model, data, show_plots = FALSE, cols = 2
     {
         # Current variable
         var <- impvar[i]
-        print(paste("Calculating variable dependence on", var, sep = " "))
+
+        if(verbose) { print(paste("Calculating variable dependence on", var, sep = " ")) }
 
         # Calculate partial dependence
         partial_dep_data <- ppdplot(rf_model,
@@ -136,7 +138,7 @@ partial_dependence_plot <- function(rf_model, data, show_plots = FALSE, cols = 2
         }
         # Generate multiplot grid
         multiplot(plots = plts, cols = cols)
-        return(NULL)
+        return(invisible(NULL))
     }
 
     # Return

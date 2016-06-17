@@ -11,13 +11,13 @@ Imports:
     dplyr (>= 0.4.3),
     tidyr (>= 0.4.1),
     lubridate (>= 1.5.6),
-    ggplot2,
+    ggplot2 (>= 2.1.0),
     clusterSim,
     mice,
     lattice,
-    randomForest,
-    grid,
-    lazyeval
+    randomForest (>= 4.6-12),
+    grid (>= 3.2.2),
+    lazyeval (>= 0.1.10)
 License: GPL-3
 LazyData: TRUE
 RoxygenNote: 5.0.1

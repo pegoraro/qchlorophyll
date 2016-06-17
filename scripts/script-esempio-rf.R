@@ -8,6 +8,8 @@
 ########################################################################################
 # Funziona con qchlorophyll ver 0.4
 
+#install.packages("/home/qchlorophyll_0.4.tar.gz", repos = NULL, type = "source")
+
 require(qchlorophyll)
 
 setwd("/home/mich/quantide/packages_R/qchlorophyll_/dati/dati_random_forest")
@@ -73,11 +75,11 @@ rm(dfs_par3,dfs_sic3,dfs_sss3,dfs_sst3,dfs_ws3,dfs_bs3,
 ################################################################################
 # Modello random forest
 
-# Fit del modello: 2000 alberi sono più che sufficienti (si vede dal plot sotto).
+# Fit del modello: 1000 alberi sono più che sufficienti (si vede dal plot sotto).
 model <- fit_random_forest(formula = bs~.,
                            data = final_df,
                            seed = 500,
-                           ntree = 2000,
+                           ntree = 1000,
                            do.trace = TRUE,
                            na.action = na.omit,
                            mtry = 11)
@@ -91,8 +93,8 @@ get_variable_importance(rf_model = model)
 # Plot importanza variabili
 variable_importance_plot(rf_model = model)
 
-# Ottiengo dati dipendenza parziale (in caso voglia manipolarli dopo)
-pd_data <- partial_dependence_plot(model, data = final_df)
+# Ottengo dati dipendenza parziale (in caso voglia manipolarli dopo)
+pdep_data <- partial_dependence_plot(model, data = final_df, verbose = TRUE)
 
 # Plots della dipendenza parziale su tutte le variabili
 partial_dependence_plot(model, data = final_df, show_plots = TRUE, cols = 2)
@@ -108,11 +110,10 @@ print(mp1)
 mp2 <- predictive_map(model, final_df, facet_by_year = TRUE)
 print(mp2)
 
-# Tune random forest
-ffd <- dplyr::select(final_df,lon,lat,year,wind,sst,sss,sic,par,depth,id_pixel,gruppo)
-tune.randomForest(bs~.,data = na.omit(final_df)) # e1071
-# Rimuovere NA e riprovare
-tuneRF(x = ffd, y = final_df$bs, ntreeTry = 300)
+# Fit random forest hyperparameter mtry
+data_fit <- na.omit(final_df)
+fit_x <- dplyr::select(ffd,year,wind,sst,sss,sic,par,depth,gruppo)
+randomForest::tuneRF(x = fit_x, y = data_fit$bs, ntreeTry = 1000)
 
 # Fine script di esempio
 ################################################################################
