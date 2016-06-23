@@ -4,7 +4,7 @@
 \alias{partial_dependence_plot}
 \title{Partial dependence plot}
 \usage{
-partial_dependence_plot(rf_model, data, show_plots = FALSE, cols = 2,
+partial_dependence_plot(rf_model, data, return_plot = FALSE, cols = 2,
   ylabel = "y", verbose = FALSE)
 }
 \arguments{
@@ -12,7 +12,7 @@ partial_dependence_plot(rf_model, data, show_plots = FALSE, cols = 2,
 
 \item{data}{data used to fit the random forest model}
 
-\item{show_plots}{should plots be showed? Boolean}
+\item{return_plot}{should plots be showed? Boolean. FALSE by default.}
 
 \item{cols}{number of columns to use when plotting the dependence plots. Defaults to 2.}
 

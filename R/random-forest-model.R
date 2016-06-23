@@ -76,7 +76,7 @@ plot_error_vs_trees <- function(rf_model, title)
 #'
 #' @param rf_model random forest model obtained from the function fit_random_forest.
 #' @param data data used to fit the random forest model
-#' @param show_plots should plots be showed? Boolean
+#' @param return_plot should plots be showed? Boolean. FALSE by default.
 #' @param cols number of columns to use when plotting the dependence plots. Defaults to 2.
 #' @param ylabel label of the y axis. Character. Defaults to "y".
 #' @param verbose be verbose? Boolean.
@@ -87,7 +87,7 @@ plot_error_vs_trees <- function(rf_model, title)
 #' @return a list with x and y values for the partial dependence graph for each variable. If show_plots
 #' is TRUE, NULL is returned.
 #'
-partial_dependence_plot <- function(rf_model, data, show_plots = FALSE, cols = 2, ylabel = "y", verbose = FALSE)
+partial_dependence_plot <- function(rf_model, data, return_plot = FALSE, cols = 2, ylabel = "y", verbose = FALSE)
 {
     # Convert data to a dataframe
     data <- as.data.frame(data)
@@ -118,7 +118,8 @@ partial_dependence_plot <- function(rf_model, data, show_plots = FALSE, cols = 2
         data_out[[var]] <- partial_dep_data
     }
 
-    if(show_plots)
+    # If return_plot == TRUE return a ggplot object, otherwise simply return partial dependence data.
+    if(return_plot)
     {
         # List of ggplots
         plts <- list()
@@ -152,12 +153,15 @@ partial_dependence_plot <- function(rf_model, data, show_plots = FALSE, cols = 2
 #' @param data data used to fit the random forest model
 #' @param variable variable to use. A character.
 #' @param ylabel label of the y axis. Character. Defaults to "y".
+#' @param return_plot Boolean. If TRUE an object of class ggplot is returned, if FALSE
+#' the data about partial dependence is calculated and returned. FALSE by default.
 #' @importFrom ggplot2 ggplot geom_line geom_label xlab ggtitle ylab
 #' @export
 #'
-#' @return a ggplot object
+#' @return Data on partial dependence for the selected variable or a ggplot object depending
+#' on the argument return_plot.
 #'
-single_partial_dependence_plot <- function(rf_model, data, variable, ylabel = "y")
+single_partial_dependence_plot <- function(rf_model, data, variable, return_plot = FALSE, ylabel = "y")
 {
     # Calculate partial dependence data
     partial_dep_data <- ppdplot(rf_model,
@@ -166,16 +170,23 @@ single_partial_dependence_plot <- function(rf_model, data, variable, ylabel = "y
                                # n.pt = 10,
                                 plot = F)
 
-    # Generate plot
     df <- as.data.frame(partial_dep_data)
-    plot_gg <- ggplot(df, aes(x = x, y = y)) +
-        geom_line() +
-        ggtitle(paste("Partial dependence on", variable, sep = " ")) +
-        xlab(variable) +
-        ylab(ylabel)
+
+    # Generate plot if return_plot == TRUE. Otherwise, simply return partial dependence data
+    if( return_plot )
+    {
+        out <- ggplot(df, aes(x = x, y = y)) +
+            geom_line() +
+            ggtitle(paste("Partial dependence on", variable, sep = " ")) +
+            xlab(variable) +
+            ylab(ylabel)
+    }else
+    {
+        out <- df
+    }
 
     # Return plot
-    return(plot_gg)
+    return(out)
 }
 
 ################################################################################

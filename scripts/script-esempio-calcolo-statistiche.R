@@ -28,19 +28,44 @@ View(nc_dataframe)
 ################################################################################
 # Calcolo statistiche descrittive
 
-# Calcolo media, deviazione standard, dati mancanti e numerosità campionaria (per ogni gruppo).
+# Calcolo media, deviazione standard, dati mancanti, numerosità campionaria e coefficiente
+# di variazione (per ogni gruppo).
 #
 # Nota1: di default la variabile sulla quale sono calcolate le statistiche è "CHL1_mean".
 # Nel caso in cui cambiasse, è sufficiente cambiare il parametro "variable".
 #
 # Nota2: L'output di questa funzione è il dataframe nc_dataframe con aggiunte
-# le variabili "avg", "sdv", "NAs_count", "n_count".
+# le variabili "avg", "sdv", "NAs_count", "n_count", "coeff_var".
 #
-media_e_sd <- aggregate_statistics(nc_dataframe,
+# Nota3: il coefficiente di variazione (deviazione standard / v. assoluto della media) può
+# essere calcolato con due sintassi diverse, in modo coerente rispetto a come sono state
+# specificate le altre funzioni per il calcolo delle altre statistiche è possibile usare
+# le due funzioni mean e sd, in alternativa è possibile utilizzare il rapporto tra le
+# colonne già calcolate (opzione commentata).
+#
+# Infine siccome la media è sempre positiva non ho usato il valore assoluto.
+#
+#
+# Nota aggiuntiva:
+# La funzione aggregate_statistics è fatta in modo che tu possa passarle tramite la lista
+# stat_funs una lista di funzioni arbitrarie che accettano come input un vettore e ritornano
+# un numero. Ad esempio, potresti definirti una tua funzione che calcola una particolare
+# statistica e passarla a aggregate_statistics. Facciamo un esempio con il coefficiente
+# di variazione:
+#
+# coeff_var <- function(x){ sd(x, na.rm = TRUE) / mean(x,na.rm = TRUE)}
+#
+# media_e_sd1 <- aggregate_statistics(nc_dataframe,
+#                                     stat_funs = list(coeff_variazione = "coeff_var(.)"),
+#                                     variable = "CHL1_mean")
+#
+media_e_sd1 <- aggregate_statistics(nc_dataframe,
                                    stat_funs = list(avg = "mean(., na.rm=TRUE)",
                                                     sdv ="sd(., na.rm=TRUE)",
                                                     NAs_count = "sum(is.na(.))",
-                                                    n_count = "n()"),
+                                                    n_count = "n()",
+                                                    #coeff_var = "sdv/avg"),
+                                                    coeff_var = "sd(.,na.rm=TRUE)/mean(., na.rm=TRUE)"),
                                    variable = "CHL1_mean")
 
 # Per maggiori informazioni, controllare l'help della funzione

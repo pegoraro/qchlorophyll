@@ -133,7 +133,7 @@ format_lon_lat_list <- function(df_list, reference_df, variable = NULL, reformat
 #'  by adding 2 units. Note that shift_amount is a list with specific names.
 #' @export
 #'
-shift_lon_lat <- function(dataframe, reference_df, lon_lat_names, shift_amount)
+shift_lon_lat <- function(dataframe, reference_df, lon_lat_names = c("lon", "lat"), shift_amount = NULL)
 {
     # Shift lon and lat
     lon_name <- lon_lat_names[1]
@@ -177,7 +177,7 @@ shift_lon_lat <- function(dataframe, reference_df, lon_lat_names, shift_amount)
 #' @importFrom dplyr tbl_df
 #' @export
 #'
-format_lon_lat <- function(dataframe, reference_df, variable, lon_lat_names)
+format_lon_lat <- function(dataframe, reference_df, variable, lon_lat_names = c("lon", "lat"))
 {
     # Number of rows in the current dataframe. Should always equal 5520.
     number_of_rows <- nrow(dataframe)

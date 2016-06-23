@@ -4,7 +4,8 @@
 \alias{shift_lon_lat}
 \title{Shift lon and lat}
 \usage{
-shift_lon_lat(dataframe, reference_df, lon_lat_names, shift_amount)
+shift_lon_lat(dataframe, reference_df, lon_lat_names = c("lon", "lat"),
+  shift_amount = NULL)
 }
 \arguments{
 \item{dataframe}{a dplyr dataframe.}

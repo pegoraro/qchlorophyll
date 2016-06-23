@@ -4,7 +4,8 @@
 \alias{format_lon_lat}
 \title{Fix latitude and longitude}
 \usage{
-format_lon_lat(dataframe, reference_df, variable, lon_lat_names)
+format_lon_lat(dataframe, reference_df, variable, lon_lat_names = c("lon",
+  "lat"))
 }
 \arguments{
 \item{dataframe}{a dplyr dataframe.}
