@@ -4,7 +4,7 @@
 \alias{predictive_map}
 \title{Plot predictive map}
 \usage{
-predictive_map(rf_model, data, facet_by_year = FALSE,
+predictive_map(rf_model, data, facet_plot = FALSE, facet_by = "year",
   lon_lat_names = list("lon", "lat"))
 }
 \arguments{
@@ -12,8 +12,10 @@ predictive_map(rf_model, data, facet_by_year = FALSE,
 
 \item{data}{data used to fit the random forest model}
 
-\item{facet_by_year}{boolean. If false a mean of all the predictions over all the years is computed
-and plotted, otherwise a prediction for each year is computed and plotted.}
+\item{facet_plot}{Should the plot be categorized? If TRUE, then the argument "facet_by" must be set. If FALSE,
+an average prediction is computed and plotted. Boolean}
+
+\item{facet_by}{variable to use in facet plots. Character.}
 
 \item{lon_lat_names}{names of latitude and longitude in the dataset. A list of characters. Defaults to list("lon", "lat")}
 }

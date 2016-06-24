@@ -1,3 +1,7 @@
+################################################################################
+# Script out of date. Non è detto che funzioni...
+################################################################################
+
 ### SIC: lon e lat differenze pattern non noto
 ### SSS: differenze! lon e lat shiftati di 0.125. (dfs_sss[[1]]$lat - new_x$lat)[1] ritorna 0.125
 ### SST: differenze! lon e lat differenze pattern non noto
@@ -5,7 +9,7 @@
 ### BS: lon e lat ok
 ### BAT: lon e lat ok
 
-########################################################################################
+################################################################################
 # Funziona con qchlorophyll ver 0.4
 
 #install.packages("/home/qchlorophyll_0.4.tar.gz", repos = NULL, type = "source")
@@ -94,7 +98,7 @@ get_variable_importance(rf_model = model)
 variable_importance_plot(rf_model = model)
 
 # Ottengo dati dipendenza parziale (in caso voglia manipolarli dopo)
-pdep_data <- partial_dependence_plot(model, data = final_df, verbose = TRUE)
+pdep_data <- partial_dependence_plot(model, data = final_df, verbose = FALSE)
 
 # Plots della dipendenza parziale su tutte le variabili
 partial_dependence_plot(model, data = final_df, show_plots = TRUE, cols = 2)
@@ -107,7 +111,7 @@ mp1 <- predictive_map(model, final_df)
 print(mp1)
 
 # Mappa predittiva. Previsione per ogni anno e faceting.
-mp2 <- predictive_map(model, final_df, facet_by_year = TRUE)
+mp2 <- predictive_map(model, final_df, facet_plot = TRUE, facet_by = "year")
 print(mp2)
 
 # Fit random forest hyperparameter mtry

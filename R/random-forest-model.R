@@ -194,14 +194,16 @@ single_partial_dependence_plot <- function(rf_model, data, variable, return_plot
 #'
 #' @param rf_model random forest model obtained from the function fit_random_forest.
 #' @param data data used to fit the random forest model
-#' @param facet_by_year boolean. If false a mean of all the predictions over all the years is computed
-#' and plotted, otherwise a prediction for each year is computed and plotted.
+#' @param facet_plot Should the plot be categorized? If TRUE, then the argument "facet_by" must be set. If FALSE,
+#' an average prediction is computed and plotted. Boolean
+#' @param facet_by variable to use in facet plots. Character.
 #' @param lon_lat_names names of latitude and longitude in the dataset. A list of characters. Defaults to list("lon", "lat")
 #' @importFrom ggplot2 ggplot geom_tile stat_contour facet_wrap aes_string
 #' @importFrom dplyr %>% select_ group_by_ mutate summarise
+#' @importFrom lazyeval interp
 #' @export
 #'
-predictive_map <- function(rf_model, data, facet_by_year = FALSE, lon_lat_names = list("lon", "lat"))
+predictive_map <- function(rf_model, data, facet_plot = FALSE, facet_by = "year", lon_lat_names = list("lon", "lat"))
 {
     # Make predictions
     z <- predict(rf_model, data)
@@ -215,17 +217,17 @@ predictive_map <- function(rf_model, data, facet_by_year = FALSE, lon_lat_names 
     var_select <- lon_lat_names
     # Lon and lat names
     ll_names <- lon_lat_names[1:2]
+    # facet_wrap formula
+    facet_wrap_formula <- interp( ~x, x = as.name(facet_by))
 
-    if(!facet_by_year)
+    if(!facet_plot)
     {
         # Select data and group
         data <- data %>%
-            #select(lon, lat, pred) %>%
             select_(.dots = var_select) %>%
-            #group_by(lon, lat) %>%
             group_by_(.dots = ll_names) %>%
-            summarise(pred = mean(pred), na.rm = TRUE) %>%
-            mutate(year = "Average of years")
+            summarise(pred = mean(pred, na.rm = TRUE)) %>%
+            mutate(year = "Average")
     }
 
     # Plot
@@ -234,7 +236,7 @@ predictive_map <- function(rf_model, data, facet_by_year = FALSE, lon_lat_names 
     ggp <- ggplot(data, aes_string(x = lon_name, y = lat_name, z = "pred")) +
         geom_tile(aes(fill = pred)) +
         stat_contour() +
-        facet_wrap(~year)
+        facet_wrap(facet_wrap_formula)
 
     # Return ggplot object
     return(ggp)

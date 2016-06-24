@@ -14,7 +14,7 @@ knitr::opts_chunk$set(fig.align = "center")
 
 ## Introduzione: caricamento pacchetto.
 
-Il seguente script funziona con qchlorophyll versione 0.4.1 o superiore.
+Il seguente script funziona con qchlorophyll versione 1.0 o superiore.
 
 Prima di installare qchlorophyll è necessario installare i seguenti pacchetti:
 
@@ -303,17 +303,24 @@ print(pd_sst_plot)
 
 ## Mappa predittiva
 
+### Mappa predittiva media
 La mappa predittiva può essere costruita utilizzando la funzione *predictive_map*. Di default, la previsione che viene utilizzata è una previsione media su tutti gli anni disponibili.
+
+> Nota 1: questa mappa è più ampia di quelle riferite al singolo anno (mappa categorizzata) siccome aggrega i valori di più anni e quindi abbiamo dei dati anche per i pixel che magari presentano dati mancanti in alcuni anni.
+
+> Nota 2: le previsioni plottate sulla mappa sono effettuate direttamente sui dati utilizzati per il training (fit) del modello ossia, la matrice X delle variabili indipendenti è esattamente la matrice utilizzata in fit_random_forest. 
 
 ```{r}
 mp1 <- predictive_map(model, final_df)
 print(mp1)
 ```
 
-Se si desidera effettuare una previsione per ogni singolo anno, è possibile fissare il parametro *facet_by_year = TRUE*
+### Mappa predittiva categorizzata
+
+Se si desidera categorizzare la mappa predittiva, ad esempio per anno, è possibile utilizzare la funzione *predictive_map* e passare gli argomenti *facet_plot = TRUE* e *facet_by = "year"* che, in questo caso, dice alla funzione di utilizzare la variabile anno per categorizzare i grafici delle previsioni.
 
 ```{r}
-mp2 <- predictive_map(model, final_df, facet_by_year = TRUE)
+mp2 <- predictive_map(model, final_df, facet_plot = TRUE, facet_by = "year")
 print(mp2)
 ```
 
@@ -321,7 +328,7 @@ print(mp2)
 
 Utilizzando la funzione *predict* è possibile effettuare previsioni utilizzando il modello.
 
-```{r, error=TRUE}
+```{r}
 data_fit <- na.omit(final_df)
 
 # Matrice delle variabili da utilizzare per la previsione
