@@ -21,7 +21,7 @@ require(qchlorophyll)
 # anche sottocartelle: la funzione load_all_as_list ignorera' questi oggetti e
 # considerera' solo i file con estensione .nc nella cartella indicata (data_nc
 # nell' esempio sotto).
-nc_files_path <- "/home/data_nc"
+nc_files_path <- "/home/mich/quantide/packages_R/qchlorophyll_/dati/CHL_8D"
 
 # Carico TUTTI i file presenti nella cartella indicata.
 #
@@ -56,8 +56,7 @@ nc_files_list <- load_all_as_list(path = nc_files_path, from = from, to = to)
 
 # Assegno id a ciascun pixel utilizzando come identificativo le coordinate e
 # unisco il tutto in un unico dataframe.
-nc_dataframe <- assign_id_and_melt(nc_files_list)
+nc_dataframe2 <- assign_id_and_melt(nc_files_list)
 
 View(nc_dataframe)
-
 

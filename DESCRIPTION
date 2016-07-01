@@ -7,7 +7,7 @@ Author: Michy Alice
 Maintainer: Michy Alice <michy.alice@quantide.com>
 Description: Package for geographical chlorophyll analysis. This package can be used for loading data from .nc files on satellite observations, aggregate that data and calculate summary statistics on it. The package provides also a set of functions for fitting a random forest model on the data and a set of functions for collecting and displaying the results of the fitting.
 Imports:
-    ncdf,
+    ncdf4,
     dplyr (>= 0.4.3),
     tidyr (>= 0.4.1),
     lubridate (>= 1.5.6),

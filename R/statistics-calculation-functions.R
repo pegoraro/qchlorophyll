@@ -136,30 +136,3 @@ filter_out_na <- function(reshaped_data_list, max_missing_periods)
     }
     return(reshaped_data_list)
 }
-
-################################################################################
-# #' Filter out data with more than n missing periods
-# #'
-# #' @param stats_dataframe a dplyr dataframe containing statistics about NAs calculated using the function aggregate_statistics
-# #' @param reshaped_data_list a list of reshaped statistics obtained with the function reshape_statistics
-# #' @param missing_data_col_name Name of the variable (column) where the information about missing data is stored
-# #' @param max_missing_periods Maximum number of missing periods. (All observations with more missing periods will be removed)
-# #' @param  unique_id A unique identifier of the observations such as "id_pixel"
-# #' @importFrom dplyr select_ %>% distinct filter_ inner_join
-# #' @export
-# #'
-# filter_out_na <- function(stats_dataframe, reshaped_data_list, missing_data_col_name = "NAs_count", max_missing_periods = 2, unique_id = "id_pixel")
-# {
-#     # Builds "x <="
-#     comparator_expression <- paste(missing_data_col_name, "<=", sep = " ")
-#     # Pastes "x <=" and max_missing_periods
-#     filter_dots <- list(paste(comparator_expression, max_missing_periods, sep = " "))
-#     # Select which pixels to keep based on missing data
-#     id_values_to_keep <- stats_dataframe %>%
-#         filter_( .dots = filter_dots) %>%
-#         select_(unique_id) %>% distinct()
-#     # For each reshaped dataframe, keep only the pixel selected above
-#     reshaped_no_na <- lapply(reshaped_data_list, function(x){ id_values_to_keep %>% inner_join(x, by = unique_id) })
-#     # Return
-#     return(reshaped_no_na)
-# }

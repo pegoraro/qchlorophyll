@@ -60,7 +60,7 @@ load_all_as_list <- function(path, from = NULL, to = NULL, variables = c("CHL1_m
 #' @param date_match_position An integer. If the name of each file contains one or more dates, chose which one will be used as the
 #' current date for the file. Example: if a file is named "20150202file2_20150706.nc", if date_match_position is set
 #' to 1 (default), the first date, 20150202 will be used. If you'd like to use the second one, set the parameter to 2.
-#' @importFrom ncdf open.ncdf get.var.ncdf close.ncdf
+#' @importFrom ncdf4 nc_open ncvar_get nc_close
 #' @return A dplyr dataframe
 #' @examples
 #' # Load "data02022015.nc"
@@ -80,7 +80,7 @@ load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c(
     print(current_date)
 
     # Open file
-    current_nc_file <- open.ncdf(file_path)
+    current_nc_file <- nc_open(file_path)
 
     # Check existance of coordinates and replace them with spare ones if needed.
     coordinates <- fix_coordinates(nc = current_nc_file, coordinates = coordinates, spare_coordinates = spare_coordinates)
@@ -95,7 +95,7 @@ load_nc_file <- function(file_path, variables = c("CHL1_mean"), coordinates = c(
     names(raw_data) <- variables_to_get
 
     # Close file
-    close.ncdf(current_nc_file)
+    nc_close(current_nc_file)
 
     # Reshape data. Basically: melt everything in a single dplyr dataframe.
     # Notes: each pixel is uniquely identified by latitude and longitude. For
@@ -177,7 +177,7 @@ reshape_data <- function(raw_data, variables, expand_variables, current_date)
 #'
 #' @param data_list A list of dplyr dataframes returned by the load_all_as_list function.
 #' @param coordinates Unique identifier to be used in the id assignment process.
-#' @importFrom dplyr rbind_all %>% select_ mutate row_number full_join distinct
+#' @importFrom dplyr bind_rows %>% select_ mutate row_number full_join distinct
 #' @return A dplyr dataframe
 #' @export
 #'
@@ -185,7 +185,7 @@ assign_id_and_melt <- function(data_list, coordinates =  c("lon", "lat"))
 {
 
     # Bind all rows in a single dataframe
-    data <- data_list %>% rbind_all()
+    data <- data_list %>% bind_rows()
     # Calculate id_pixel
     id <- data %>% select_(coordinates[2], coordinates[1]) %>% distinct() %>% mutate(id_pixel = row_number())
     # Add id_pixel

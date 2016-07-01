@@ -5,13 +5,13 @@
 #'
 #' @param variable variable to be extracted. Character.
 #' @param nc file with .nc extension
-#' @importFrom ncdf get.var.ncdf
+#' @importFrom ncdf4 ncvar_get
 #' @return The requested variable. Data structure depends on which variable is recovered.
 #' @export
 #'
 load_variable_from_nc <- function(variable, nc)
 {
-    get.var.ncdf(nc, variable)
+    ncvar_get(nc, variable)
 }
 
 ################################################################################
