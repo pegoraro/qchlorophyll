@@ -18,37 +18,46 @@ require(qchlorophyll)
 # Caricamento files di test
 
 # Path
-nc_files_path <- "/home/data_nc"
-nc_files_path <- "/home/mich/quantide/packages_R/qchlorophyll_/dati/CHL_8D"
+nc_files_path_chl <- "/home/mich/quantide/packages_R/qchlorophyll_/dati/CHL_8D"
+nc_files_path_pic <- "/home/mich/quantide/packages_R/qchlorophyll_/dati/PIC_TEST"
 # Carico file .nc ed estraggo CHL1_mean
-nc_files_list <- load_all_as_list(path = nc_files_path, variables = c("CHL1_mean"))
+nc_files_list_chl <- load_all_as_list(path = nc_files_path_chl, variables = c("CHL1_mean"))
+nc_files_list_pic <- load_all_as_list(path = nc_files_path_pic, variables = c("PIC_mean"))
 # Unisco il tutto in un unico dataframe.
-nc_dataframe <- assign_id_and_melt(nc_files_list)
+nc_dataframe_chl <- assign_id_and_melt(nc_files_list_chl)
+nc_dataframe_pic <- assign_id_and_melt(nc_files_list_pic)
 
 ################################################################################
 # Calcolo media
 
-media <- aggregate_statistics(nc_dataframe,
+media_chl <- aggregate_statistics(nc_dataframe_chl,
                                    stat_funs = list(avg = "mean(., na.rm=TRUE)"),
                                    variable = "CHL1_mean")
+media_pic <- aggregate_statistics(nc_dataframe_pic,
+                                  stat_funs = list(avg = "mean(., na.rm=TRUE)"),
+                                  variable = "PIC_mean")
 
 ################################################################################
 # Reshape delle statistiche
 
-media_reshaped <- reshape_statistics(media)
+media_reshaped_chl <- reshape_statistics(media_chl)
+media_reshaped_pic <- reshape_statistics(media_pic)
 
 ################################################################################
 # Filtraggio dati mancanti
 
-media_reshaped_less_NA <- filter_out_na(reshaped_data_list = media_reshaped,
+media_reshaped_less_NA_chl <- filter_out_na(reshaped_data_list = media_reshaped_chl,
                                              max_missing_periods =  2)
-
+media_reshaped_less_NA_pic <- filter_out_na(reshaped_data_list = media_reshaped_pic,
+                                        max_missing_periods =  10)
 ################################################################################
 # Approssimzione dati mancanti (NA)
 
 # Seleziono il dataframe che contiene i valori medi per ogni giorno per pixel
-x <- media_reshaped_less_NA[[1]]
-
+chl <- media_reshaped_less_NA_chl[[1]]
+pic <- media_reshaped_less_NA_pic[[1]]
+View(chl)
+View(pic)
 # Approssimo gli NA.
 
 # Nota: di default (id_pixel, lon e lat sono esclusi dal processo)
@@ -56,19 +65,25 @@ x <- media_reshaped_less_NA[[1]]
 # I valori vengono approssimati utilizzando il predictive mean matching.
 # E' possibile scegliere il metodo con cui effettuare l'imputazione attraverso
 # l'argomento "meth".  Vedere la documentazione della funzione mice::mice per maggiori informazioni
-x <- approximate_NAs(data = x, seed = 500)
+x_chl <- approximate_NAs(data = chl, seed = 500)
+x_pic <- approximate_NAs(data = pic, seed = 500, exclude_variables = list("id_pixel"))
+
+class(chl)
+class(pic)
+dim(chl)
+dim(pic)
 
 # Plot della densità dei dati approssimati vs densità dati reali.
 # I dati approssimati sono quelli in viola, i dati reali quelli in blu.
 # Nota: i punti dove mancano la maggior parte dei dati sono il d_024 e il d_312 cioè il primo e l'ultimo
 # giorno giuliano della serie. Le distribuzioni dei dati approssimati sono molto simili a quelle dei dati
 # reali in questi due casi. Negli altri casi mancano pochi dati.
-plot_density_imputed_na(x)
+plot_density_imputed_na(x_chl)
 
 ################################################################################
 # Standardizzazione dati
 
-x_stdz <- standardize_data(x)
+x_stdz <- standardize_data(x_chl)
 
 ################################################################################
 # Analisi kmeans

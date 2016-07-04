@@ -5,7 +5,7 @@
 \title{Impute NAs using mice.}
 \usage{
 approximate_NAs(data, seed, exclude_variables = list("lon", "lat",
-  "id_pixel"), m = 5, maxit = 50, meth = "pmm", ...)
+  "id_pixel"), m = 5, maxit = 50, meth = "pmm", verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{a dplyr dataframe containing the data to be standardized}
@@ -19,6 +19,8 @@ approximate_NAs(data, seed, exclude_variables = list("lon", "lat",
 \item{maxit}{A scalar giving the number of iterations. The default is 5}
 
 \item{meth}{method used for imputation. See mice::mice function description for more information.}
+
+\item{verbose}{Be verbose?}
 
 \item{...}{other parameters passed directly to the mice::mice function}
 }

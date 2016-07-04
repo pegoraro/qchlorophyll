@@ -12,12 +12,13 @@
 #' @param m Number of multiple imputations. The default is m=5.
 #' @param maxit A scalar giving the number of iterations. The default is 5
 #' @param meth method used for imputation. See mice::mice function description for more information.
+#' @param verbose Be verbose?
 #' @param ... other parameters passed directly to the mice::mice function
 #' @importFrom dplyr select_ bind_cols tbl_df %>%
 #' @return A dplyr dataframe
 #' @export
 #'
-approximate_NAs <- function(data, seed, exclude_variables = list("lon", "lat", "id_pixel"), m = 5, maxit = 50, meth = "pmm", ...)
+approximate_NAs <- function(data, seed, exclude_variables = list("lon", "lat", "id_pixel"), m = 5, maxit = 50, meth = "pmm", verbose = FALSE, ...)
 {
     requireNamespace("mice")
 
@@ -26,7 +27,7 @@ approximate_NAs <- function(data, seed, exclude_variables = list("lon", "lat", "
     data_to_fill <- data %>% select_(.dots = variables_to_drop)
 
     # Impute data using mice
-    tempData <- mice::mice(data_to_fill, m = m, maxit = maxit, meth = meth, seed = seed, ...)
+    tempData <- mice::mice(data_to_fill, m = m, maxit = maxit, meth = meth, seed = seed, printFlag = verbose, ...)
 
     # Filled data.
     filled_data <- mice::complete(tempData, 1)
@@ -37,8 +38,6 @@ approximate_NAs <- function(data, seed, exclude_variables = list("lon", "lat", "
 
     # Set attribute for future use. Check no slowdowns
     attr(filled_data, "imputed_dataset") <- tempData
-
-    # Detach package
 
     # Return
     return(filled_data)
