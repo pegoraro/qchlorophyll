@@ -17,7 +17,8 @@ Imports:
     lattice,
     randomForest (>= 4.6-12),
     grid (>= 3.2.2),
-    lazyeval (>= 0.1.10)
+    lazyeval (>= 0.1.10),
+    stringi
 License: GPL-3
 LazyData: TRUE
 RoxygenNote: 5.0.1
