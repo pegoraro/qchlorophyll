@@ -1,3 +1,9 @@
+# Cose da fare:
+# 1. Aggiustare anche per i file mensili (recover_nc_data)
+# 2. Permettere all'utente di scegliere l'area da ritagliare (load_data_to_resize)
+# 3. Testare
+# 4. Funzione interpolante
+
 ################################################################################
 #' Load all .nc files to be resized as a list in a given local path
 #'
@@ -109,12 +115,6 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
     # Return data
     return(data)
 }
-
-# Cose da fare:
-# 1. Aggiustare anche per i file mensili (recover_nc_data)
-# 2. Permettere all'utente di scegliere l'area da ritagliare (load_data_to_resize)
-# 3. Testare
-# 4. Funzione interpolante
 
 ################################################################################
 #' Select files to load from a given range of years
