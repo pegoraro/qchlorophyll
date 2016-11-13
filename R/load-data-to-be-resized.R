@@ -35,6 +35,7 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
 }
 
 ################################################################################
+#' Load nc files to be resized. Subfunction
 #'
 #' @param file_path Path where the file is located. Example: /home/data. Character.
 #' @param variables variables to be extracted from .nc file
@@ -110,9 +111,8 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
 }
 
 # Cose da fare:
-# 1. Aggiustare anche per i file mensili
-# 1.1 Permettere all'utente di scegliere l'area da ritagliare
-# 2. Aggiungere lapply(ncfiles, recover_nc)
+# 1. Aggiustare anche per i file mensili (recover_nc_data)
+# 2. Permettere all'utente di scegliere l'area da ritagliare (load_data_to_resize)
 # 3. Testare
 # 4. Funzione interpolante
 
