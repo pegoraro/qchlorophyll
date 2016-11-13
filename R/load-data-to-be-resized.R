@@ -14,6 +14,7 @@
 #' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
 #' to be: c("longitude","latitude").
 #' @param time_variable variable representing the frequency of the observations. Character.
+#' @importFrom stringi stri_extract_last_regex
 #' @return a list of dplyr dataframes
 #' @export
 #'
@@ -24,12 +25,13 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
     # Select only files within the given year range
     files_to_load <- select_by_year(file_names, from = from, to = to)
     # Build path to each file
-    files_to_load <- lapply(files_to_load, make_path, path)
+    files_to_load_path <- lapply(files_to_load, make_path, path)
     # Load each .nc file as a list of dataframe
-    # AL MOMENTO CARICA SOLO IL PRIMO FILE (A SCOPO DI TEST). Qui dovrà essere un lapply(files_to_load,recover_nc_data,...)
-    files_to_load <- recover_nc_data(files_to_load[[1]], variables = variables, coordinates = coordinates, spare_coordinates = spare_coordinates, time_variable = time_variable)
+    files_loaded <- lapply(files_to_load_path, recover_nc_data, variables = variables, coordinates = coordinates, spare_coordinates = spare_coordinates, time_variable = time_variable)
+    # Set names
+    names(files_loaded) <- stri_extract_last_regex(files_to_load, "\\d{4}")
     # Return a list of dataframes ready to be manipulated
-    return(files_to_load)
+    return(files_loaded)
 }
 
 ################################################################################
@@ -41,6 +43,10 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
 #' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
 #' to be: c("longitude","latitude").
 #' @param time_variable variable representing the frequency of the observations. Character.
+#' @importFrom stringi stri_extract_last_regex
+#' @importFrom ncdf4 nc_open nc_close
+#' @importFrom lubridate dmy yday month year
+#' @importFrom dplyr %>% mutate tbl_df bind_cols filter select_
 #' @return a dplyr dataframe
 #' @export
 #'
