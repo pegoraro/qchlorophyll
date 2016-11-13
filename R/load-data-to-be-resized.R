@@ -1,12 +1,19 @@
 ################################################################################
 #' Load all .nc files to be resized as a list in a given local path
 #'
+#' Note: these files contain a time variable. They represent observations of a
+#' certain variable with a given frequency. The variable "time" defines the
+#' sampling frequency.
+#'
 #' @param path Path where to .nc files are located. Example: /home/data. Character.
 #' @param from starting year (included). Either a numeric or a character. Example: 2009
 #' @param to ending year(included). Either a numeric or a character. Example: 2010
-#' @param variable variable to be extracted from .nc file
+#' @param variables variables to be extracted from .nc file
 #' @param coordinates longitude and latitude names
-#' @return
+#' @param spare_coordinates Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
+#' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
+#' to be: c("longitude","latitude").
+#' @return a list of dplyr dataframes
 #' @export
 #'
 load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet", "time"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"))
@@ -18,11 +25,23 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
     # Build path to each file
     files_to_load <- lapply(files_to_load, make_path, path)
     # Load each .nc file as a list of dataframe
-    # lapply...
+    # AL MOMENTO CARICA SOLO IL PRIMO FILE (A SCOPO DI TEST)
     files_to_load <- recover_nc_data(files_to_load[[1]], variables = variables, coordinates = coordinates, spare_coordinates = spare_coordinates)
+    # Return a list of dataframes ready to be manipulated
     return(files_to_load)
 }
 
+################################################################################
+#'
+#' @param file_path Path where the file is located. Example: /home/data. Character.
+#' @param variables variables to be extracted from .nc file
+#' @param coordinates longitude and latitude names
+#' @param spare_coordinates Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
+#' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
+#' to be: c("longitude","latitude").
+#' @return a dplyr dataframe
+#' @export
+#'
 recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates)
 {
     # Open file
@@ -42,20 +61,24 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
     data_grid <- raw_data[c("lon","lat","time")] %>% expand.grid()
     # Convert data.frame object to a tbl_df
     data_grid <- tbl_df(data_grid)
-    # Add variable
-    print(class(raw_data["qnet"]))
+    # Add variable. Non va....
+    data_grid$qnet <- c(raw_data["qnet"]$qnet)
+    #data_grid <- data_grid %>% mutate_(qnet = var)
 
-    data_grid %>% mutate_(qnet = unlist(raw_data["qnet"]))
+    # Cose da fare:
+    # 1. Usare dplyr e generalizzare
+    # 2. Generalizzare
+    # 3. shiftare lon e lat di 360 gradi come fa Christian
+
+    # POI:
+    # Cut the area of interest
+    # Interpolate
 
     return(data_grid)
 }
 
-# Cut the area of interest
-#
-# Interpolate
-
 ################################################################################
-#' Select file names from year
+#' Select files to load from a given range of years
 #'
 #' @param file_names names of the files to filter
 #' @param from starting year (included). Either a numeric or a character. Example: 2009
