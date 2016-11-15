@@ -1,5 +1,4 @@
 # Cose da fare:
-# 2. Permettere all'utente di scegliere l'area da ritagliare (load_data_to_resize)
 # 3. Testare su shf
 # 4. Funzione interpolante
 
@@ -26,16 +25,23 @@
 #' @return a list of dplyr dataframes
 #' @export
 #'
-load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), time_variable = "time", monthly=FALSE)
+load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), time_variable = "time", lower_left_lat_lon = c(52.00, -65.00), upper_right_lat_lon = c(67.00, -42.00), monthly = FALSE)
 {
     # Load file names from path. Select only .nc files
     file_names <- list.files(path = path, pattern = "\\.nc$")
     # Select only files within the given year range
-    files_to_load <- select_by_year(file_names, from = from, to = to)
+    files_to_load <- select_files_by_year(file_names, from = from, to = to)
     # Build path to each file
     files_to_load_path <- lapply(files_to_load, make_path, path)
     # Load each .nc file as a list of dataframe
-    files_loaded <- lapply(files_to_load_path, recover_nc_data, variables = variables, coordinates = coordinates, spare_coordinates = spare_coordinates, time_variable = time_variable, monthly=monthly)
+    files_loaded <- lapply(files_to_load_path, recover_nc_data,
+                           variables = variables,
+                           coordinates = coordinates,
+                           spare_coordinates = spare_coordinates,
+                           time_variable = time_variable,
+                           lower_left_lat_lon = lower_left_lat_lon,
+                           upper_right_lat_lon = upper_right_lat_lon,
+                           monthly = monthly)
     # Set names
     names(files_loaded) <- stri_extract_last_regex(files_to_load, "\\d{4}")
     # Return a list of dataframes ready to be manipulated
@@ -62,10 +68,11 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
 #' @return a dplyr dataframe
 #' @export
 #'
-recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates, time_variable, monthly)
+recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates, time_variable, monthly, lower_left_lat_lon, upper_right_lat_lon)
 {
-    # Get year
-    year <- stri_extract_last_regex(file_path, "\\d{4}")
+    ########################################
+    # Load nc file data
+    ########################################
 
     # Open file
     current_nc_file <- nc_open(file_path)
@@ -80,46 +87,49 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
     # Close file
     nc_close(current_nc_file)
 
+    ######################################
+    # Generate grid and add variables
+    ######################################
+
     # Expand coordinates (lon and lat)
     data_grid <- raw_data[c(coordinates, time_variable)] %>% expand.grid()
-    # Convert data.frame object to a tbl_df
-    data_grid <- tbl_df(data_grid)
 
-    # Add variables to data grid. Old add variables mode: data_grid$qnet <- c(raw_data[[variables]])
+    # Add variables to data grid.
     fun <- function(x) data.frame(as.vector((x), mode = "numeric"))
     variables_data <- lapply(raw_data[variables], fun)
     variables_df <- do.call(cbind, variables_data)
     names(variables_df) <- variables
-    variables_df <- tbl_df(variables_df)
-    data <- data_grid %>% bind_cols(variables_df)
+    variables_df <- variables_df %>% tbl_df()
+    data <- data_grid %>% tbl_df() %>% bind_cols(variables_df)
 
     # Fix longitude. GENERALIZZARE.
     temp <- which(data$lon > 180)
     data$lon[temp] <- data$lon[temp] - 360
 
-    # Devono poter essere definiti dall'utente
-    lower_left_lat_lon <- c(52.00, -65.00)
-    upper_right_lat_lon <- c(67.00, -42.00)
-
     # Select only the area you're interested in
     data <- data %>%
         filter(lat >= lower_left_lat_lon[1] & lat <= upper_right_lat_lon[1] & lon >= lower_left_lat_lon[2] & lon <= upper_right_lat_lon[2])
 
+    # Get year from file path
+    year <- stri_extract_last_regex(file_path, "\\d{4}")
     # Referemce date
     ref_date <- dmy(paste("31-12", year, sep = "-"))
 
-    # Add id_date, month, year. Mutate and select calls
-    month_mutate_call <- interp(~ month(ref_date + time), ref_date=ref_date, time=as.name("time"))
+    # Add id_date, month, year. Mutate call for month and select call
+    month_mutate_call <- interp(~ month(ref_date + time), ref_date = ref_date, time = as.name(time_variable))
     select_call <- list(coordinates[1], coordinates[2], variables, "id_date", "month", "year")
+
+    # If data frequency is monthly, update mutate and select calls
     if(monthly)
     {
-        month_mutate_call <- interp(~ time, time=as.name("time"))
+        month_mutate_call <- interp(~ time, time = as.name("time"))
         select_call <- list(coordinates[1], coordinates[2], variables, "month", "year")
     }
 
-    mutate_call <- list(id_date = interp(~ yday(ref_date + time), ref_date=ref_date, time=as.name("time") ),
+    # Full mutate call
+    mutate_call <- list(id_date = interp(~ yday(ref_date + time), ref_date = ref_date, time = as.name(time_variable) ),
                         month = month_mutate_call,
-                        year = interp(~ year(ref_date), ref_date=ref_date))
+                        year = interp(~ year(ref_date), ref_date = ref_date))
 
     # Mutate and select variables
     data <- data %>%
@@ -134,7 +144,7 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
 }
 
 ################################################################################
-#' Select files to load from a given range of years
+#' Select files to load from a given range of years.
 #'
 #' @param file_names names of the files to filter
 #' @param from starting year (included). Either a numeric or a character. Example: 2009
@@ -143,39 +153,36 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
 #' @return a vector of filenames filtered by year
 #' @export
 #'
-select_by_year <- function(file_names, from, to)
+select_files_by_year <- function(file_names, from, to)
 {
     # Extract year from file name and convert it to a numeric
-    years <- sapply(file_names, function(x) stri_extract_last_regex(x, "\\d{4}"))
-    years <- sapply(years, as.numeric)
-
-    # Select files from year range
+    years <- sapply(file_names, function(x) as.numeric(stri_extract_last_regex(x, "\\d{4}")))
 
     # If neither from or to are supplied, select the whole range
     if(is.null(from) && is.null(to))
     {
-        return(names(years))
+        selected_years <- years
     }
     # If to is supplied, load all files up to the selected year (included)
-    if(is.null(from) && !is.null(to))
+    else if(is.null(from) && !is.null(to))
     {
         selected_years <- years[years <= to]
-        files_picked <- names(selected_years)
-        return(files_picked)
     }
     # If from is supplied, load all files from the selected year(included)
-    if(!is.null(from) && is.null(to))
+    else if(!is.null(from) && is.null(to))
     {
         selected_years <- years[years >= from]
-        files_picked <- names(selected_years)
-        return(files_picked)
     }
     # Else, (if both are supplied), load the files in the supplied range of years
     else
     {
         selected_years <- years[years <= to]
         selected_years <- selected_years[selected_years >= from]
-        files_picked <- names(selected_years)
-        return(files_picked)
     }
+
+    # Get file names to recover
+    files_picked <- names(selected_years)
+
+    # Return
+    return(files_picked)
 }

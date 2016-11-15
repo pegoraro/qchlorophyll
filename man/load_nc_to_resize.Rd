@@ -6,7 +6,8 @@
 \usage{
 load_nc_to_resize(path, from = NULL, to = NULL, variables = c("qnet"),
   coordinates = c("lon", "lat"), spare_coordinates = c("longitude",
-  "latitude"), time_variable = "time")
+  "latitude"), time_variable = "time", lower_left_lat_lon = c(52, -65),
+  upper_right_lat_lon = c(67, -42), monthly = FALSE)
 }
 \arguments{
 \item{path}{Path where to .nc files are located. Example: /home/data. Character.}
@@ -24,13 +25,17 @@ load_nc_to_resize(path, from = NULL, to = NULL, variables = c("qnet"),
 to be: c("longitude","latitude").}
 
 \item{time_variable}{variable representing the frequency of the observations. Character.}
+
+\item{monthly}{whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
+FALSE if frequency is annual. FALSE by default.}
 }
 \value{
 a list of dplyr dataframes
 }
 \description{
 Note: these files contain a time variable. They represent observations of a
-certain variable with a given frequency. The variable "time" defines the
-sampling frequency.
+certain variable with a given frequency. The variable "time" defines the name of
+the sampling frequency variable. The function assumes that the data has a daily
+frequency. If the frequency is monthly, set the monthy variable to TRUE.
 }
 

@@ -5,7 +5,7 @@
 \title{Load nc files to be resized. Subfunction}
 \usage{
 recover_nc_data(file_path, variables, coordinates, spare_coordinates,
-  time_variable)
+  time_variable, monthly, lower_left_lat_lon, upper_right_lat_lon)
 }
 \arguments{
 \item{file_path}{Path where the file is located. Example: /home/data. Character.}
@@ -19,6 +19,9 @@ recover_nc_data(file_path, variables, coordinates, spare_coordinates,
 to be: c("longitude","latitude").}
 
 \item{time_variable}{variable representing the frequency of the observations. Character.}
+
+\item{monthly}{whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
+FALSE if frequency is annual. FALSE by default.}
 }
 \value{
 a dplyr dataframe
