@@ -19,6 +19,8 @@
 #' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
 #' to be: c("longitude","latitude").
 #' @param time_variable variable representing the frequency of the observations. Character.
+#' @param lower_left_lat_lon lower left corner latitude and longitude of the selected area.
+#' @param upper_right_lat_lon upper right corner latitude and longitude of the selected area.
 #' @param monthly whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
 #' FALSE if frequency is annual. FALSE by default.
 #' @importFrom stringi stri_extract_last_regex
@@ -60,6 +62,8 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
 #' @param time_variable variable representing the frequency of the observations. Character.
 #' @param monthly whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
 #' FALSE if frequency is annual. FALSE by default.
+#' @param lower_left_lat_lon lower left corner latitude and longitude of the selected area.
+#' @param upper_right_lat_lon upper right corner latitude and longitude of the selected area.
 #' @importFrom stringi stri_extract_last_regex
 #' @importFrom ncdf4 nc_open nc_close
 #' @importFrom lubridate dmy yday month year
@@ -122,7 +126,7 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
     # If data frequency is monthly, update mutate and select calls
     if(monthly)
     {
-        month_mutate_call <- interp(~ time, time = as.name("time"))
+        month_mutate_call <- interp(~ time, time = as.name(time_variable))
         select_call <- list(coordinates[1], coordinates[2], variables, "month", "year")
     }
 
