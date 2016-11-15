@@ -1,15 +1,15 @@
 # Cose da fare:
-# 1. Aggiustare anche per i file mensili (recover_nc_data)
 # 2. Permettere all'utente di scegliere l'area da ritagliare (load_data_to_resize)
-# 3. Testare
+# 3. Testare su shf
 # 4. Funzione interpolante
 
 ################################################################################
 #' Load all .nc files to be resized as a list in a given local path
 #'
 #' Note: these files contain a time variable. They represent observations of a
-#' certain variable with a given frequency. The variable "time" defines the
-#' sampling frequency.
+#' certain variable with a given frequency. The variable "time" defines the name of
+#' the sampling frequency variable. The function assumes that the data has a daily
+#' frequency. If the frequency is monthly, set the monthy variable to TRUE.
 #'
 #' @param path Path where to .nc files are located. Example: /home/data. Character.
 #' @param from starting year (included). Either a numeric or a character. Example: 2009
@@ -20,11 +20,13 @@
 #' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
 #' to be: c("longitude","latitude").
 #' @param time_variable variable representing the frequency of the observations. Character.
+#' @param monthly whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
+#' FALSE if frequency is annual. FALSE by default.
 #' @importFrom stringi stri_extract_last_regex
 #' @return a list of dplyr dataframes
 #' @export
 #'
-load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), time_variable = "time")
+load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), time_variable = "time", monthly=FALSE)
 {
     # Load file names from path. Select only .nc files
     file_names <- list.files(path = path, pattern = "\\.nc$")
@@ -33,7 +35,7 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
     # Build path to each file
     files_to_load_path <- lapply(files_to_load, make_path, path)
     # Load each .nc file as a list of dataframe
-    files_loaded <- lapply(files_to_load_path, recover_nc_data, variables = variables, coordinates = coordinates, spare_coordinates = spare_coordinates, time_variable = time_variable)
+    files_loaded <- lapply(files_to_load_path, recover_nc_data, variables = variables, coordinates = coordinates, spare_coordinates = spare_coordinates, time_variable = time_variable, monthly=monthly)
     # Set names
     names(files_loaded) <- stri_extract_last_regex(files_to_load, "\\d{4}")
     # Return a list of dataframes ready to be manipulated
@@ -50,14 +52,17 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
 #' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
 #' to be: c("longitude","latitude").
 #' @param time_variable variable representing the frequency of the observations. Character.
+#' @param monthly whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
+#' FALSE if frequency is annual. FALSE by default.
 #' @importFrom stringi stri_extract_last_regex
 #' @importFrom ncdf4 nc_open nc_close
 #' @importFrom lubridate dmy yday month year
-#' @importFrom dplyr %>% mutate tbl_df bind_cols filter select_
+#' @importFrom dplyr %>% mutate tbl_df bind_cols filter select_ mutate_
+#' @importFrom lazyeval interp
 #' @return a dplyr dataframe
 #' @export
 #'
-recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates, time_variable)
+recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates, time_variable, monthly)
 {
     # Get year
     year <- stri_extract_last_regex(file_path, "\\d{4}")
@@ -103,11 +108,23 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
     # Referemce date
     ref_date <- dmy(paste("31-12", year, sep = "-"))
 
-    # Add id_date, month, year
-    data <- data %>% mutate(id_date = yday(ref_date + time),
-                            month = month(ref_date + time),
-                            year = year(ref_date)) %>%
-            select_(.dots = list(coordinates[1], coordinates[2], variables, "id_date", "month", "year"))
+    # Add id_date, month, year. Mutate and select calls
+    month_mutate_call <- interp(~ month(ref_date + time), ref_date=ref_date, time=as.name("time"))
+    select_call <- list(coordinates[1], coordinates[2], variables, "id_date", "month", "year")
+    if(monthly)
+    {
+        month_mutate_call <- interp(~ time, time=as.name("time"))
+        select_call <- list(coordinates[1], coordinates[2], variables, "month", "year")
+    }
+
+    mutate_call <- list(id_date = interp(~ yday(ref_date + time), ref_date=ref_date, time=as.name("time") ),
+                        month = month_mutate_call,
+                        year = interp(~ year(ref_date), ref_date=ref_date))
+
+    # Mutate and select variables
+    data <- data %>%
+                mutate_(.dots = mutate_call) %>%
+                    select_(.dots = select_call)
 
     # Print status info
     print(paste("Loaded: ", strsplit(file_path, "/")[[1]][ length(strsplit(file_path, "/")[[1]]) ] ))
