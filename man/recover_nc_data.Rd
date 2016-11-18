@@ -22,6 +22,10 @@ to be: c("longitude","latitude").}
 
 \item{monthly}{whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
 FALSE if frequency is annual. FALSE by default.}
+
+\item{lower_left_lat_lon}{lower left corner latitude and longitude of the selected area.}
+
+\item{upper_right_lat_lon}{upper right corner latitude and longitude of the selected area.}
 }
 \value{
 a dplyr dataframe

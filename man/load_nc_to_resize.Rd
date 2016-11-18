@@ -26,6 +26,10 @@ to be: c("longitude","latitude").}
 
 \item{time_variable}{variable representing the frequency of the observations. Character.}
 
+\item{lower_left_lat_lon}{lower left corner latitude and longitude of the selected area.}
+
+\item{upper_right_lat_lon}{upper right corner latitude and longitude of the selected area.}
+
 \item{monthly}{whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
 FALSE if frequency is annual. FALSE by default.}
 }
