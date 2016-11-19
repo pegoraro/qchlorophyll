@@ -12,8 +12,8 @@
 interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", variable = "qnet", coordinates_names = c("lon", "lat"))
 {
     # Lon-lat ranges
-    lon_range <- as.numeric(c(min(reference_df[lon_lat_names[1]]), max(reference_df[lon_lat_names[1]])))
-    lat_range <- as.numeric(c(min(reference_df[lon_lat_names[2]]), max(reference_df[lon_lat_names[2]])))
+    lon_range <- as.numeric(c(min(reference_df[coordinates_names[1]]), max(reference_df[coordinates_names[1]])))
+    lat_range <- as.numeric(c(min(reference_df[coordinates_names[2]]), max(reference_df[coordinates_names[2]])))
     step <- 0.1
 
     fitted_df_list <- lapply(data_list, interpolate_single_grid,
@@ -58,10 +58,11 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
     for(i in 1:days)
     {
         # Select data from the ith date
-        day_data <- data %>% filter(id_date == i) %>% na.omit()
+        day_data <- df %>% filter(id_date == i) %>% na.omit()
+        print(day_data)
         # Variables common to each date (id_date, month, year)
         other_vars <- day_data %>%
-            select_(.dots = as.list(names(data)[names(data) != c(coordinates_names, var)])) %>%
+            select_(.dots = as.list(names(df)[names(df) != c(coordinates_names, var)])) %>%
             distinct() %>% as.list()
         # Set coordinates
         coordinates(day_data) = ~lon + lat

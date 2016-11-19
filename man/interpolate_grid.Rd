@@ -2,21 +2,26 @@
 % Please edit documentation in R/interpolating_functions.R
 \name{interpolate_grid}
 \alias{interpolate_grid}
-\title{Load nc files to be resized. Subfunction}
+\title{Interpolate a list of dplyr dataframes}
 \usage{
-interpolate_grid(data_list, reference_df, observation_id = "id_date")
+interpolate_grid(data_list, reference_df, unique_id = "id_date",
+  variable = "qnet", coordinates_names = c("lon", "lat"))
 }
 \arguments{
 \item{data_list}{a list of dplyr dataframe to interpolate}
 
 \item{reference_df}{a reference dataframe containing at least the following variables: longitude, latitude, id_pixel}
 
-\item{observation_id}{id of the observation: id_date for daily observations, month for monthly observations.}
+\item{unique_id}{unique id of the observation (usually id_date or id_month)}
+
+\item{variable}{variable to interpolate}
+
+\item{coordinates_names}{names of the coordinates (longitude and latitude)}
 }
 \value{
 a dplyr dataframe
 }
 \description{
-Load nc files to be resized. Subfunction
+Interpolate a list of dplyr dataframes
 }
 
