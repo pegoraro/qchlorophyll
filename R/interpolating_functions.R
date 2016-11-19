@@ -26,7 +26,7 @@ interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", var
 
     fitted_df <- bind_rows(fitted_df_list)
 
-    return(fitted_df)
+    return(fitted_df_list)
 }
 
 ################################################################################
@@ -54,35 +54,40 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
     # Output list
     out_lst <- list()
 
+    # Set new grid, coordinates and gridded attribute
+    grd <- expand.grid(lon = seq(from = lon_range[1], to = lon_range[2], by = step), lat = seq(from = lat_range[1], to = lat_range[2], by = step))
+    coordinates(grd) <- ~lon + lat
+    gridded(grd) <- TRUE
+    # idw formula
+    idw_formula <- as.formula(paste(variable, 1, sep=" ~ "))
+
     # Start to interpolate each date
     for(i in 1:days)
     {
         # Select data from the ith date
-        day_data <- df %>% filter(id_date == i) %>% na.omit()
+        #day_data <- df %>% filter(id_date == i) %>% na.omit()
+        day_data <- df %>% filter_(lazyeval::interp(~x == y, x = as.name(unique_id), y = i)) %>% na.omit()
         #print(day_data)
         # Variables common to each date (id_date, month, year)
         other_vars <- day_data %>%
-            select_(.dots = as.list(names(df)[names(df) != c(coordinates_names, var)])) %>%
+            select_(.dots = as.list(names(df)[names(df) != c(coordinates_names, variable)])) %>%
             distinct() %>% as.list()
         # Set coordinates
         coordinates(day_data) = ~lon + lat
-        # Set new grid, coordinates and gridded attribute
-        grd <- expand.grid(lon = seq(from = lon_range[1], to = lon_range[2], by = step), lat = seq(from = lat_range[1], to = lat_range[2], by = step))
-        coordinates(grd) <- ~lon + lat
-        gridded(grd) <- TRUE
         # Interpolate using idw
-        idw <- idw(formula = as.formula(paste(variable, 1, sep=" ~ ")), locations = day_data, newdata = grd)
+        idw <- idw(formula = idw_formula, locations = day_data, newdata = grd)
         idw_output <- as.data.frame(idw)
         # Set names
-        names(idw_output)[1:3] <- c(coordinates_names[1], coordinates_names[2], var)
+        names(idw_output)[1:3] <- c(coordinates_names[1], coordinates_names[2], variable)
         # Format output
-        idw_output <- idw_output %>%
-            tbl_df() %>%
+        idw_output <- tbl_df(idw_output) %>%
             select_(coordinates_names[1], coordinates_names[2], variable) %>%
             mutate_(.dots = other_vars)
         # Assign output to list
         out_lst[[i]] <- idw_output
     }
     # Bind all the dataframes in a single dataframe
-    out <- bind_rows(out_lst)
+    df_out <- bind_rows(out_lst)
+    # Return
+    return(df_out)
 }

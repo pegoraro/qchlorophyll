@@ -1,7 +1,3 @@
-# Cose da fare:
-# 3. Testare su shf
-# 4. Funzione interpolante
-
 ################################################################################
 #' Load all .nc files to be resized as a list in a given local path
 #'
