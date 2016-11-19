@@ -93,6 +93,7 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
     }
     # Bind all the dataframes in a single dataframe
     df_out <- bind_rows(out_lst)
+    # ADD PRINT STATUS INFO. ES: "Done with file ith"
     # Return
     return(df_out)
 }
