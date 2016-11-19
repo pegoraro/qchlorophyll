@@ -11,11 +11,12 @@
 #'
 interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", variable = "qnet", coordinates_names = c("lon", "lat"))
 {
-    # Lon-lat ranges
+    # Determine lon and lat range and step
     lon_range <- as.numeric(c(min(reference_df[coordinates_names[1]]), max(reference_df[coordinates_names[1]])))
     lat_range <- as.numeric(c(min(reference_df[coordinates_names[2]]), max(reference_df[coordinates_names[2]])))
     step <- 0.1
 
+    # Interpolate each dataframe in the list
     fitted_df_list <- lapply(data_list, interpolate_single_grid,
                              unique_id = unique_id,
                              variable = variable,
@@ -24,9 +25,11 @@ interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", var
                              lat_range = lat_range,
                              step = step)
 
+    # Stack all the dataframes in a single dataframe
     fitted_df <- bind_rows(fitted_df_list)
 
-    return(fitted_df_list)
+    # Return
+    return(fitted_df)
 }
 
 ################################################################################
@@ -44,6 +47,7 @@ interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", var
 #' @importFrom dplyr %>% select_ distinct filter mutate_ tbl_df bind_rows
 #' @importFrom sp coordinates gridded
 #' @importFrom gstat idw
+#' @importFrom lazyeval interp
 #' @return a dplyr dataframe
 #' @export
 #'
@@ -56,8 +60,8 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
 
     # Set new grid, coordinates and gridded attribute
     grd <- expand.grid(lon = seq(from = lon_range[1], to = lon_range[2], by = step), lat = seq(from = lat_range[1], to = lat_range[2], by = step))
-    coordinates(grd) <- ~lon + lat
-    gridded(grd) <- TRUE
+    sp::coordinates(grd) <- ~lon + lat
+    sp::gridded(grd) <- TRUE
     # idw formula
     idw_formula <- as.formula(paste(variable, 1, sep=" ~ "))
 
@@ -66,14 +70,14 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
     {
         # Select data from the ith date
         #day_data <- df %>% filter(id_date == i) %>% na.omit()
-        day_data <- df %>% filter_(lazyeval::interp(~x == y, x = as.name(unique_id), y = i)) %>% na.omit()
+        day_data <- df %>% filter_(interp(~x == y, x = as.name(unique_id), y = i)) %>% na.omit()
         #print(day_data)
         # Variables common to each date (id_date, month, year)
         other_vars <- day_data %>%
             select_(.dots = as.list(names(df)[names(df) != c(coordinates_names, variable)])) %>%
             distinct() %>% as.list()
         # Set coordinates
-        coordinates(day_data) = ~lon + lat
+        sp::coordinates(day_data) = ~lon + lat
         # Interpolate using idw
         idw <- idw(formula = idw_formula, locations = day_data, newdata = grd)
         idw_output <- as.data.frame(idw)
