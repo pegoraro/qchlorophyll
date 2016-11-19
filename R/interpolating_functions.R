@@ -75,11 +75,12 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
         # Variables common to each date (id_date, month, year)
         other_vars <- day_data %>%
             select_(.dots = as.list(names(df)[names(df) != c(coordinates_names, variable)])) %>%
-            distinct() %>% as.list()
+            distinct() %>%
+            as.list()
         # Set coordinates
         sp::coordinates(day_data) = ~lon + lat
         # Interpolate using idw
-        idw <- idw(formula = idw_formula, locations = day_data, newdata = grd)
+        idw <- idw(formula = idw_formula, locations = day_data, newdata = grd, debug.level = 0)
         idw_output <- as.data.frame(idw)
         # Set names
         names(idw_output)[1:3] <- c(coordinates_names[1], coordinates_names[2], variable)
