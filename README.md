@@ -2,6 +2,8 @@
 
 R Package for geographical chlorophyll analysis.
 
+---
+
 ## Functionalities
 The package provides the following functions:
 
