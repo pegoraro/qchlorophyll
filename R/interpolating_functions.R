@@ -5,16 +5,19 @@
 #' @param reference_df a reference dataframe containing at least the following variables: longitude, latitude, id_pixel
 #' @param unique_id unique id of the observation (usually id_date or id_month)
 #' @param variable variable to interpolate
+#' @param step step in the longitude-latitude grid. Set to 0.25 by default.
 #' @param coordinates_names names of the coordinates (longitude and latitude)
 #' @return a dplyr dataframe
 #' @export
 #'
-interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", variable = "qnet", coordinates_names = c("lon", "lat"))
+interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", variable = "qnet", step = 0.25, coordinates_names = c("lon", "lat"))
 {
     # Determine lon and lat range and step
     lon_range <- as.numeric(c(min(reference_df[coordinates_names[1]]), max(reference_df[coordinates_names[1]])))
     lat_range <- as.numeric(c(min(reference_df[coordinates_names[2]]), max(reference_df[coordinates_names[2]])))
-    step <- 0.1
+
+    # Print status info
+    print(paste("Starting interpolation process. Interpolating", length(data_list), "file(s). This may take a while...", sep = " "))
 
     # Interpolate each dataframe in the list
     fitted_df_list <- lapply(data_list, interpolate_single_grid,
@@ -25,9 +28,12 @@ interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", var
                              lat_range = lat_range,
                              step = step)
 
+    # Print status
+    print("Done interpolating data frames. Stacking data frames row wise...")
     # Stack all the dataframes in a single dataframe
     fitted_df <- bind_rows(fitted_df_list)
-
+    # Done
+    print("Done!")
     # Return
     return(fitted_df)
 }
@@ -60,7 +66,7 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
 
     # Set new grid, coordinates and gridded attribute
     grd <- expand.grid(lon = seq(from = lon_range[1], to = lon_range[2], by = step), lat = seq(from = lat_range[1], to = lat_range[2], by = step))
-    sp::coordinates(grd) <- ~lon + lat
+    sp::coordinates(grd) <- ~ lon + lat
     sp::gridded(grd) <- TRUE
     # idw formula
     idw_formula <- as.formula(paste(variable, 1, sep=" ~ "))
@@ -69,16 +75,23 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
     for(i in 1:days)
     {
         # Select data from the ith date
-        #day_data <- df %>% filter(id_date == i) %>% na.omit()
         day_data <- df %>% filter_(interp(~x == y, x = as.name(unique_id), y = i)) %>% na.omit()
+
+        #####################
         #print(day_data)
+        #print(names(df))
+        #print(names(day_data))
+        #print(c(coordinates_names, variable))
+        #print(names(df)[names(df) != c(coordinates_names, variable)])
+        #stop()
+        ####################
         # Variables common to each date (id_date, month, year)
         other_vars <- day_data %>%
-            select_(.dots = as.list(names(df)[names(df) != c(coordinates_names, variable)])) %>%
+            select_(.dots = as.list(setdiff(names(df), c(coordinates_names, variable)) )) %>%
             distinct() %>%
             as.list()
         # Set coordinates
-        sp::coordinates(day_data) = ~lon + lat
+        sp::coordinates(day_data) = ~ lon + lat
         # Interpolate using idw
         idw <- idw(formula = idw_formula, locations = day_data, newdata = grd, debug.level = 0)
         idw_output <- as.data.frame(idw)
@@ -93,7 +106,8 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
     }
     # Bind all the dataframes in a single dataframe
     df_out <- bind_rows(out_lst)
-    # ADD PRINT STATUS INFO. ES: "Done with file ith"
+    # Print status
+    print("Done interpolating current file.")
     # Return
     return(df_out)
 }
