@@ -4,17 +4,17 @@
 \alias{interpolate_grid}
 \title{Interpolate a list of dplyr dataframes}
 \usage{
-interpolate_grid(data_list, reference_df, unique_id = "id_date",
-  variable = "qnet", step = 0.25, coordinates_names = c("lon", "lat"))
+interpolate_grid(data_list, reference_df, variable, unique_id = "id_date",
+  step = 0.25, coordinates_names = c("lon", "lat"))
 }
 \arguments{
 \item{data_list}{a list of dplyr dataframe to interpolate}
 
 \item{reference_df}{a reference dataframe containing at least the following variables: longitude, latitude, id_pixel}
 
-\item{unique_id}{unique id of the observation (usually id_date or id_month)}
-
 \item{variable}{variable to interpolate}
+
+\item{unique_id}{unique id of the observation (usually id_date or id_month)}
 
 \item{step}{step in the longitude-latitude grid. Set to 0.25 by default.}
 

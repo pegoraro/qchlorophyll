@@ -5,7 +5,8 @@
 \title{Load nc files to be resized. Subfunction}
 \usage{
 recover_nc_data(file_path, variables, coordinates, spare_coordinates,
-  time_variable, monthly, lower_left_lat_lon, upper_right_lat_lon)
+  time_variable, monthly, lower_left_lat_lon, upper_right_lat_lon,
+  date_origin = NULL)
 }
 \arguments{
 \item{file_path}{Path where the file is located. Example: /home/data. Character.}
@@ -26,6 +27,9 @@ FALSE if frequency is annual. FALSE by default.}
 \item{lower_left_lat_lon}{lower left corner latitude and longitude of the selected area.}
 
 \item{upper_right_lat_lon}{upper right corner latitude and longitude of the selected area.}
+
+\item{date_origin}{If the dates in the .nc files are hours from a fixed origin, please specify origin date as
+"yyyy-mm-dd". By default origin date is assumed to be 1st January of each year (the year is read from the file name).}
 }
 \value{
 a dplyr dataframe

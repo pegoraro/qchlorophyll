@@ -3,14 +3,14 @@
 #'
 #' @param data_list a list of dplyr dataframe to interpolate
 #' @param reference_df a reference dataframe containing at least the following variables: longitude, latitude, id_pixel
-#' @param unique_id unique id of the observation (usually id_date or id_month)
 #' @param variable variable to interpolate
+#' @param unique_id unique id of the observation (usually id_date or id_month)
 #' @param step step in the longitude-latitude grid. Set to 0.25 by default.
 #' @param coordinates_names names of the coordinates (longitude and latitude)
 #' @return a dplyr dataframe
 #' @export
 #'
-interpolate_grid <- function(data_list, reference_df, unique_id = "id_date", variable = "qnet", step = 0.25, coordinates_names = c("lon", "lat"))
+interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_date", step = 0.25, coordinates_names = c("lon", "lat"))
 {
     # Determine lon and lat range and step
     lon_range <- as.numeric(c(min(reference_df[coordinates_names[1]]), max(reference_df[coordinates_names[1]])))
@@ -77,15 +77,7 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
         # Select data from the ith date
         day_data <- df %>% filter_(interp(~x == y, x = as.name(unique_id), y = i)) %>% na.omit()
 
-        #####################
-        #print(day_data)
-        #print(names(df))
-        #print(names(day_data))
-        #print(c(coordinates_names, variable))
-        #print(names(df)[names(df) != c(coordinates_names, variable)])
-        #stop()
-        ####################
-        # Variables common to each date (id_date, month, year)
+        # Set aside variables common to each date (id_date, month, year)
         other_vars <- day_data %>%
             select_(.dots = as.list(setdiff(names(df), c(coordinates_names, variable)) )) %>%
             distinct() %>%

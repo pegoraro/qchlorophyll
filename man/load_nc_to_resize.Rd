@@ -7,7 +7,7 @@
 load_nc_to_resize(path, from = NULL, to = NULL, variables = c("qnet"),
   coordinates = c("lon", "lat"), spare_coordinates = c("longitude",
   "latitude"), time_variable = "time", lower_left_lat_lon = c(52, -65),
-  upper_right_lat_lon = c(67, -42), monthly = FALSE)
+  upper_right_lat_lon = c(67, -42), monthly = FALSE, date_origin = NULL)
 }
 \arguments{
 \item{path}{Path where to .nc files are located. Example: /home/data. Character.}
@@ -32,6 +32,9 @@ to be: c("longitude","latitude").}
 
 \item{monthly}{whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
 FALSE if frequency is annual. FALSE by default.}
+
+\item{date_origin}{If the dates in the .nc files are the number of hours from a fixed origin, please specify origin date as
+"yyyy-mm-dd". By default origin date is assumed to be 1st January of each year (the year is read from the file name).}
 }
 \value{
 a list of dplyr dataframes

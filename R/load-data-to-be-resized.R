@@ -19,11 +19,13 @@
 #' @param upper_right_lat_lon upper right corner latitude and longitude of the selected area.
 #' @param monthly whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
 #' FALSE if frequency is annual. FALSE by default.
+#' @param date_origin If the dates in the .nc files are the number of hours from a fixed origin, please specify origin date as
+#' "yyyy-mm-dd". By default origin date is assumed to be 1st January of each year (the year is read from the file name).
 #' @importFrom stringi stri_extract_last_regex
 #' @return a list of dplyr dataframes
 #' @export
 #'
-load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), time_variable = "time", lower_left_lat_lon = c(52.00, -65.00), upper_right_lat_lon = c(67.00, -42.00), monthly = FALSE)
+load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), time_variable = "time", lower_left_lat_lon = c(52.00, -65.00), upper_right_lat_lon = c(67.00, -42.00), monthly = FALSE, date_origin = NULL)
 {
     # Load file names from path. Select only .nc files
     file_names <- list.files(path = path, pattern = "\\.nc$")
@@ -39,7 +41,8 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
                            time_variable = time_variable,
                            lower_left_lat_lon = lower_left_lat_lon,
                            upper_right_lat_lon = upper_right_lat_lon,
-                           monthly = monthly)
+                           monthly = monthly,
+                           date_origin = date_origin)
     # Set names
     names(files_loaded) <- stri_extract_last_regex(files_to_load, "\\d{4}")
     # Return a list of dataframes ready to be manipulated
@@ -60,15 +63,17 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
 #' FALSE if frequency is annual. FALSE by default.
 #' @param lower_left_lat_lon lower left corner latitude and longitude of the selected area.
 #' @param upper_right_lat_lon upper right corner latitude and longitude of the selected area.
+#' @param date_origin If the dates in the .nc files are hours from a fixed origin, please specify origin date as
+#' "yyyy-mm-dd". By default origin date is assumed to be 1st January of each year (the year is read from the file name).
 #' @importFrom stringi stri_extract_last_regex
 #' @importFrom ncdf4 nc_open nc_close
-#' @importFrom lubridate dmy yday month year
+#' @importFrom lubridate dmy ymd yday month year as_date
 #' @importFrom dplyr %>% mutate tbl_df bind_cols filter select_ mutate_
 #' @importFrom lazyeval interp
 #' @return a dplyr dataframe
 #' @export
 #'
-recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates, time_variable, monthly, lower_left_lat_lon, upper_right_lat_lon)
+recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates, time_variable, monthly, lower_left_lat_lon, upper_right_lat_lon, date_origin = NULL)
 {
     ########################################
     # Load nc file data
@@ -102,7 +107,7 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
     variables_df <- variables_df %>% tbl_df()
     data <- data_grid %>% tbl_df() %>% bind_cols(variables_df)
 
-    # Fix longitude. GENERALIZZARE.
+    # Fix longitude. GENERALIZE!
     temp <- which(data$lon > 180)
     data$lon[temp] <- data$lon[temp] - 360
 
@@ -116,6 +121,8 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
     ref_date <- dmy(paste("31-12", year, sep = "-"))
 
     # Add id_date, month, year. Mutate call for month and select call
+    id_date_mutate_call <- interp(~ yday(ref_date + time), ref_date = ref_date, time = as.name(time_variable) )
+    year_mutate_call <- interp(~ year(ref_date), ref_date = ref_date)
     month_mutate_call <- interp(~ month(ref_date + time), ref_date = ref_date, time = as.name(time_variable))
     select_call <- list(coordinates[1], coordinates[2], variables, "id_date", "month", "year")
 
@@ -125,11 +132,21 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
         month_mutate_call <- interp(~ time, time = as.name(time_variable))
         select_call <- list(coordinates[1], coordinates[2], variables, "month", "year")
     }
+    # If data is specified from an origin, then act accordingly (example: shtfl .nc data)
+    if( !is.null(date_origin) )
+    {
+        # Add to data the date
+        data <- data %>% mutate(origin = ymd(date_origin), date = as.Date(time / 24, origin = origin))
+        # Redefine the mutate calls
+        id_date_mutate_call <- interp( ~ yday(date) )
+        month_mutate_call <- interp( ~ month(date) )
+        year_mutate_call <- interp( ~ year(date) )
+    }
 
     # Full mutate call
-    mutate_call <- list(id_date = interp(~ yday(ref_date + time), ref_date = ref_date, time = as.name(time_variable) ),
+    mutate_call <- list(id_date = id_date_mutate_call,
                         month = month_mutate_call,
-                        year = interp(~ year(ref_date), ref_date = ref_date))
+                        year = year_mutate_call)
 
     # Mutate and select variables
     data <- data %>%
