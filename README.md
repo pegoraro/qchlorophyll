@@ -25,6 +25,8 @@ The package provides the following functions:
 - A set of functions for loading sets of yearly .csv files grouped in local folders.
 - A set of functions for fitting a random forest model, getting information from the fitted model, predicting and plotting predictions in a geographical map.
 
+---
+
 ## Dependencies
 Requires the following packages:
 
@@ -43,6 +45,8 @@ Requires the following packages:
 - sp
 - gstat
  
+ ---
+ 
 ## Examples
 The scripts folder contains some examples of use.
-See the documentation of each function for more information.
+See the documentation of each function for more information. Examples in readme are coming!
