@@ -51,7 +51,7 @@ interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_
 #' @param lat_range latitude range (min, max)
 #' @param step step between longitude and latitude vectors
 #' @importFrom dplyr %>% select_ distinct filter mutate_ tbl_df bind_rows
-#' @importFrom sp coordinates gridded
+#' @importFrom sp coordinates gridded spplot
 #' @importFrom gstat idw
 #' @importFrom lazyeval interp
 #' @return a dplyr dataframe
@@ -85,8 +85,18 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
         # Set coordinates
         sp::coordinates(day_data) = ~ lon + lat
         # Interpolate using idw
-        idw <- idw(formula = idw_formula, locations = day_data, newdata = grd, debug.level = 0)
-        idw_output <- as.data.frame(idw)
+        idw_out <- idw(formula = idw_formula, locations = day_data, newdata = grd, debug.level = 0)
+
+        ###############################
+        # Printing plot. Achtung: this will print 365 plots!!!
+        #png(filename=paste("/home/mich/pictures_qnet/2002/picture_",i,".png",sep=""))
+        #a <- spplot(idw["var1.pred"], main = "Qnet inverse distance weighted interpolations 2002")
+        #print(a)
+        #dev.off()
+        ################################
+
+        # Formatting output as dataframe
+        idw_output <- as.data.frame(idw_out)
         # Set names
         names(idw_output)[1:3] <- c(coordinates_names[1], coordinates_names[2], variable)
         # Format output
