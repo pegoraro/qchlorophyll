@@ -95,6 +95,7 @@ button.code-folding-btn:focus {
 </style>
 
 
+
 <div class="container-fluid main-container">
 
 <!-- tabsets -->
@@ -199,12 +200,12 @@ dati_mensili &lt;- load_nc_to_resize(path = path,
 </div>
 <div id="dati-con-la-data-in-formato-ore-da-data-di-riferimento" class="section level3">
 <h3>Dati con la data in formato “ore da data di riferimento”</h3>
-<p>Per i file shftl.nc (dati con frequenza giornaliera) la data è fornita nel formato “ore trascorse da una data di riferimento”. La data di riferimento in questione è 1800-01-01 (formato: yyyy-mm-dd). La data di riferimento va specificata nella funzione <strong>load_nc_to_resize</strong> come segue:</p>
+<p>Per i file shtfl.nc (dati con frequenza giornaliera) la data è fornita nel formato “ore trascorse da una data di riferimento”. La data di riferimento in questione è 1800-01-01 (formato: yyyy-mm-dd). La data di riferimento va specificata nella funzione <strong>load_nc_to_resize</strong> come segue:</p>
 <pre class="r"><code>setwd(&quot;/home/mich/Dropbox/cartella_condivisa_linux/quantide/packages_R/qchlorophyll_/dati/nuovo_lavoro/NHF/shf&quot;)
 path &lt;- getwd()
 
-# Caricamento di tutti i dati giornalieri shftl
-dati_giornalieri_shftl &lt;- load_nc_to_resize(path = path,
+# Caricamento di tutti i dati giornalieri shtfl
+dati_giornalieri_shtfl &lt;- load_nc_to_resize(path = path,
                                             variables = c(&quot;shtfl&quot;),
                                             lower_left_lat_lon = c(52, -65),
                                             upper_right_lat_lon = c(67, -42),
@@ -219,7 +220,7 @@ dati_giornalieri_shftl &lt;- load_nc_to_resize(path = path,
 <h2>Interpolazione (aumento risoluzione dei file)</h2>
 <p>Di seguito l’aumento di risoluzione sui dati caricati.</p>
 <p>L’aumento di risoluzione viene effettuato con l’algoritmo <a href="https://en.wikipedia.org/wiki/Inverse_distance_weighting">inverse distance weighting</a> in modo da garantire che i valori stimati siano entro il massimo e il minimo dei valori effettivi noti.</p>
-<p>Il procedimento non dipende dalla frequenza delle osservazioni per cui è identico sia che si tratti di dati mensili che annuali. Si rende però necessario specificare il nome della variabile da interpolare (qnet oppure shftl negli esempi).</p>
+<p>Il procedimento non dipende dalla frequenza delle osservazioni per cui è identico sia che si tratti di dati mensili che annuali. Si rende però necessario specificare il nome della variabile da interpolare (qnet oppure shtfl negli esempi).</p>
 <p>Il dataframe di riferimento deve contenere almeno le variabili longitudine e latitudine (lon e lat). Il parametro <strong>step</strong> determina il livello di risoluzione. Si assume che longitudine e latitudine siano equispaziate di un valore pari al parametro <strong>step</strong>. Vedere la variabile <strong>grd</strong> per un esempio. Consiglio di non fissare <strong>step</strong> a valori troppo bassi (ossia non fissare una risoluzione troppo elevata). L’interpolazione è effettuata giorno per giorno e nonostante sia relativamente veloce, il procedimento è abbastanza oneroso in termini di tempo proprio per la necessità di lavorare su dati giornalieri ad ogni interpolazione (le interpolazioni effettuate sono 365 per il numero di file caricati). Per i dati mensili i tempi sono notevolmente più corti siccome le interpolazioni da effettuare sono solo 12 per il numero di file caricati.</p>
 <p>La funzione <em>interpolate_grid</em> restituisce un dataframe dplyr pronto per essere aggregato o elaborato ulteriormente.</p>
 <pre class="r"><code># Interpolation test
@@ -248,6 +249,7 @@ df_interpolato &lt;- interpolate_grid(dati_giornalieri, variable = &quot;qnet&qu
 $(document).ready(function () {
   $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
 });
+
 
 </script>
 

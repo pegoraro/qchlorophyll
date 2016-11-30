@@ -12,26 +12,26 @@ load_nc_to_resize(path, from = NULL, to = NULL, variables = c("qnet"),
 \arguments{
 \item{path}{Path where to .nc files are located. Example: /home/data. Character.}
 
-\item{from}{starting year (included). Either a numeric or a character. Example: 2009}
+\item{from}{starting year (included). Either a numeric or a character. Example: 2009.}
 
-\item{to}{ending year(included). Either a numeric or a character. Example: 2010}
+\item{to}{ending year(included). Either a numeric or a character. Example: 2010.}
 
-\item{variables}{variables to be extracted from .nc file}
+\item{variables}{variables to be extracted from .nc file. A character vector. Defaults to c("qnet")}
 
-\item{coordinates}{longitude and latitude names}
+\item{coordinates}{longitude and latitude names. Defaults to c("lon", "lat")}
 
 \item{spare_coordinates}{Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
 .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
 to be: c("longitude","latitude").}
 
-\item{time_variable}{variable representing the frequency of the observations. Character.}
+\item{time_variable}{variable representing the frequency of the observations. Character. Defaults to "time".}
 
-\item{lower_left_lat_lon}{lower left corner latitude and longitude of the selected area.}
+\item{lower_left_lat_lon}{lower left corner latitude and longitude of the selected area. Set by default.}
 
-\item{upper_right_lat_lon}{upper right corner latitude and longitude of the selected area.}
+\item{upper_right_lat_lon}{upper right corner latitude and longitude of the selected area.  Set by default.}
 
-\item{monthly}{whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
-FALSE if frequency is annual. FALSE by default.}
+\item{monthly}{whether data has a monthly or an annual frequency. Boolean. Set equal to TRUE if data has a monthly frequency.
+Set to FALSE if frequency is annual. FALSE by default.}
 
 \item{date_origin}{If the dates in the .nc files are the number of hours from a fixed origin, please specify origin date as
 "yyyy-mm-dd". By default origin date is assumed to be 1st January of each year (the year is read from the file name).}
@@ -43,6 +43,11 @@ a list of dplyr dataframes
 Note: these files contain a time variable. They represent observations of a
 certain variable with a given frequency. The variable "time" defines the name of
 the sampling frequency variable. The function assumes that the data has a daily
-frequency. If the frequency is monthly, set the monthy variable to TRUE.
+frequency. If the frequency is monthly, please set the monthy variable to TRUE.
+}
+\details{
+Dates are assumed to begin from the 1st of January. If the dates are in the format "hours"
+from a given date", please specify the starting date in the format "yyyy-mm-dd". Please note
+that no other formats are accepted. See the parameter date_origin below.
 }
 

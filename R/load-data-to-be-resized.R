@@ -4,21 +4,25 @@
 #' Note: these files contain a time variable. They represent observations of a
 #' certain variable with a given frequency. The variable "time" defines the name of
 #' the sampling frequency variable. The function assumes that the data has a daily
-#' frequency. If the frequency is monthly, set the monthy variable to TRUE.
+#' frequency. If the frequency is monthly, please set the monthy variable to TRUE.
+#'
+#' Dates are assumed to begin from the 1st of January. If the dates are in the format "hours"
+#' from a given date", please specify the starting date in the format "yyyy-mm-dd". Please note
+#' that no other formats are accepted. See the parameter date_origin below.
 #'
 #' @param path Path where to .nc files are located. Example: /home/data. Character.
-#' @param from starting year (included). Either a numeric or a character. Example: 2009
-#' @param to ending year(included). Either a numeric or a character. Example: 2010
-#' @param variables variables to be extracted from .nc file
-#' @param coordinates longitude and latitude names
+#' @param from starting year (included). Either a numeric or a character. Example: 2009.
+#' @param to ending year(included). Either a numeric or a character. Example: 2010.
+#' @param variables variables to be extracted from .nc file. A character vector. Defaults to c("qnet")
+#' @param coordinates longitude and latitude names. Defaults to c("lon", "lat")
 #' @param spare_coordinates Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
 #' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
 #' to be: c("longitude","latitude").
-#' @param time_variable variable representing the frequency of the observations. Character.
-#' @param lower_left_lat_lon lower left corner latitude and longitude of the selected area.
-#' @param upper_right_lat_lon upper right corner latitude and longitude of the selected area.
-#' @param monthly whether data has a monthly or an annual frequency. TRUE if data has a monthly frequency.
-#' FALSE if frequency is annual. FALSE by default.
+#' @param time_variable variable representing the frequency of the observations. Character. Defaults to "time".
+#' @param lower_left_lat_lon lower left corner latitude and longitude of the selected area. Set by default.
+#' @param upper_right_lat_lon upper right corner latitude and longitude of the selected area.  Set by default.
+#' @param monthly whether data has a monthly or an annual frequency. Boolean. Set equal to TRUE if data has a monthly frequency.
+#' Set to FALSE if frequency is annual. FALSE by default.
 #' @param date_origin If the dates in the .nc files are the number of hours from a fixed origin, please specify origin date as
 #' "yyyy-mm-dd". By default origin date is assumed to be 1st January of each year (the year is read from the file name).
 #' @importFrom stringi stri_extract_last_regex
@@ -53,7 +57,7 @@ load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"
 #' Load nc files to be resized. Subfunction
 #'
 #' @param file_path Path where the file is located. Example: /home/data. Character.
-#' @param variables variables to be extracted from .nc file
+#' @param variables variables to be extracted from .nc file. Character vector.
 #' @param coordinates longitude and latitude names
 #' @param spare_coordinates Spare names for coordinates. Variables such as longitude and latitude may be named differently in every
 #' .nc file. In order to account this possibility, you can provide a set of spare names for both coordinates. Set by default
@@ -107,46 +111,53 @@ recover_nc_data <- function(file_path, variables, coordinates, spare_coordinates
     variables_df <- variables_df %>% tbl_df()
     data <- data_grid %>% tbl_df() %>% bind_cols(variables_df)
 
-    # Fix longitude. GENERALIZE!
+    ######################################
+    # Fix longitude.
     temp <- which(data$lon > 180)
     data$lon[temp] <- data$lon[temp] - 360
+    ######################################
 
     # Select only the area you're interested in
     data <- data %>%
         filter(lat >= lower_left_lat_lon[1] & lat <= upper_right_lat_lon[1] & lon >= lower_left_lat_lon[2] & lon <= upper_right_lat_lon[2])
 
     # Get year from file path
-    year <- stri_extract_last_regex(file_path, "\\d{4}")
-    # Referemce date
-    ref_date <- dmy(paste("31-12", year, sep = "-"))
+    year <- as.numeric(stri_extract_last_regex(file_path, "\\d{4}"))
+    # Referemce date is 31-12-(year-1) since then adding the time_variable will lead to the exact year in the date
+    ref_date <- dmy(paste("31-12", year - 1, sep = "-"))
 
     # Add id_date, month, year. Mutate call for month and select call
     id_date_mutate_call <- interp(~ yday(ref_date + time), ref_date = ref_date, time = as.name(time_variable) )
-    year_mutate_call <- interp(~ year(ref_date), ref_date = ref_date)
     month_mutate_call <- interp(~ month(ref_date + time), ref_date = ref_date, time = as.name(time_variable))
-    select_call <- list(coordinates[1], coordinates[2], variables, "id_date", "month", "year")
+    year_mutate_call <- interp(~ year(ref_date + time), ref_date = ref_date, time = as.name(time_variable))
+    date_mutate_call <- interp(~ ref_date + time, ref_date = ref_date)
+    # Select call
+    select_call <- list(coordinates[1], coordinates[2], variables, "id_date", "month", "year", "date")
 
     # If data frequency is monthly, update mutate and select calls
     if(monthly)
     {
         month_mutate_call <- interp(~ time, time = as.name(time_variable))
-        select_call <- list(coordinates[1], coordinates[2], variables, "month", "year")
+        select_call <- list(coordinates[1], coordinates[2], variables, "month", "year", "date")
     }
     # If data is specified from an origin, then act accordingly (example: shtfl .nc data)
     if( !is.null(date_origin) )
     {
         # Add to data the date
-        data <- data %>% mutate(origin = ymd(date_origin), date = as.Date(time / 24, origin = origin))
+        data <- data %>% mutate(origin = ymd(date_origin),
+                                date = as.Date(time / 24, origin = origin))
         # Redefine the mutate calls
         id_date_mutate_call <- interp( ~ yday(date) )
         month_mutate_call <- interp( ~ month(date) )
         year_mutate_call <- interp( ~ year(date) )
+        date_mutate_call <- interp( ~ date)
     }
 
     # Full mutate call
     mutate_call <- list(id_date = id_date_mutate_call,
                         month = month_mutate_call,
-                        year = year_mutate_call)
+                        year = year_mutate_call,
+                        date = date_mutate_call)
 
     # Mutate and select variables
     data <- data %>%

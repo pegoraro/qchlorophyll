@@ -11,7 +11,7 @@ recover_nc_data(file_path, variables, coordinates, spare_coordinates,
 \arguments{
 \item{file_path}{Path where the file is located. Example: /home/data. Character.}
 
-\item{variables}{variables to be extracted from .nc file}
+\item{variables}{variables to be extracted from .nc file. Character vector.}
 
 \item{coordinates}{longitude and latitude names}
 

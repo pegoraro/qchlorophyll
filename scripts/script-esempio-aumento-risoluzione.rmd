@@ -105,14 +105,14 @@ dati_mensili <- load_nc_to_resize(path = path,
 
 ### Dati con la data in formato "ore da data di riferimento"
 
-Per i file shftl.nc (dati con frequenza giornaliera) la data è fornita nel formato "ore trascorse da una data di riferimento". La data di riferimento in questione è 1800-01-01 (formato: yyyy-mm-dd). La data di riferimento va specificata nella funzione **load_nc_to_resize** come segue:
+Per i file shtfl.nc (dati con frequenza giornaliera) la data è fornita nel formato "ore trascorse da una data di riferimento". La data di riferimento in questione è 1800-01-01 (formato: yyyy-mm-dd). La data di riferimento va specificata nella funzione **load_nc_to_resize** come segue:
 
 ```{r, eval=FALSE}
 setwd("/home/mich/Dropbox/cartella_condivisa_linux/quantide/packages_R/qchlorophyll_/dati/nuovo_lavoro/NHF/shf")
 path <- getwd()
 
-# Caricamento di tutti i dati giornalieri shftl
-dati_giornalieri_shftl <- load_nc_to_resize(path = path,
+# Caricamento di tutti i dati giornalieri shtfl
+dati_giornalieri_shtfl <- load_nc_to_resize(path = path,
                                             variables = c("shtfl"),
                                             lower_left_lat_lon = c(52, -65),
                                             upper_right_lat_lon = c(67, -42),
@@ -131,7 +131,7 @@ Di seguito l'aumento di risoluzione sui dati caricati.
 
 L'aumento di risoluzione viene effettuato con l'algoritmo [inverse distance weighting](https://en.wikipedia.org/wiki/Inverse_distance_weighting) in modo da garantire che i valori stimati siano entro il massimo e il minimo dei valori effettivi noti.
 
-Il procedimento non dipende dalla frequenza delle osservazioni per cui è identico sia che si tratti di dati mensili che annuali. Si rende però necessario specificare il nome della variabile da interpolare (qnet oppure shftl negli esempi).
+Il procedimento non dipende dalla frequenza delle osservazioni per cui è identico sia che si tratti di dati mensili che annuali. Si rende però necessario specificare il nome della variabile da interpolare (qnet oppure shtfl negli esempi).
 
 Il dataframe di riferimento deve contenere almeno le variabili longitudine e latitudine (lon e lat). Il parametro **step** determina il livello di risoluzione. Si assume che longitudine e latitudine siano equispaziate di un valore pari al parametro **step**. Vedere la variabile **grd** per un esempio. Consiglio di non fissare **step** a valori troppo bassi (ossia non fissare una risoluzione troppo elevata). L'interpolazione è effettuata giorno per giorno e nonostante sia relativamente veloce, il procedimento è abbastanza oneroso in termini di tempo proprio per la necessità di lavorare su dati giornalieri ad ogni interpolazione (le interpolazioni effettuate sono 365 per il numero di file caricati). Per i dati mensili i tempi sono notevolmente più corti siccome le interpolazioni da effettuare sono solo 12 per il numero di file caricati.
 

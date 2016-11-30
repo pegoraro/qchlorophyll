@@ -1,12 +1,16 @@
 ################################################################################
 #' Interpolate a list of dplyr dataframes
 #'
-#' @param data_list a list of dplyr dataframe to interpolate
-#' @param reference_df a reference dataframe containing at least the following variables: longitude, latitude, id_pixel
-#' @param variable variable to interpolate
-#' @param unique_id unique id of the observation (usually id_date or id_month)
-#' @param step step in the longitude-latitude grid. Set to 0.25 by default.
-#' @param coordinates_names names of the coordinates (longitude and latitude)
+#' @param data_list a list of dplyr dataframes to interpolate
+#' @param reference_df a reference dataframe containing at least the following variables: longitude, latitude, id_pixel.
+#' @param variable variable to interpolate. Character.
+#' @param unique_id unique id of the observation (usually id_date for daily observations or id_month for monthly observations).
+#' Do NOT use id_pixel. Here is why:
+#' this id should identify the a set of observations at a given time since the interpolation is done on a daily basis using the
+#' values of all the available pixels for that day. In short, the id should identify a specific time, not a specific pixel.
+#' Furthermore, the id id_pixel loses its meaning when changing the resolution of the data.
+#' @param step step (resolution) in the longitude-latitude grid. Set to 0.25 by default.
+#' @param coordinates_names names of the coordinates (longitude and latitude).
 #' @return a dplyr dataframe
 #' @export
 #'
@@ -20,7 +24,7 @@ interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_
     print(paste("Starting interpolation process. Interpolating", length(data_list), "file(s). This may take a while...", sep = " "))
 
     # Interpolate each dataframe in the list
-    fitted_df_list <- lapply(data_list, interpolate_single_grid,
+    fitted_df_list <- lapply(data_list, FUN = interpolate_single_grid_multi_day,
                              unique_id = unique_id,
                              variable = variable,
                              coordinates_names = coordinates_names,
@@ -44,23 +48,24 @@ interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_
 #' of monthly observations)
 #'
 #' @param df a dplyr dataframe to interpolate
-#' @param unique_id unique id of the observation (usually id_date or id_month)
+#' @param unique_id unique id of the observation (usually id_date or month). Do NOT use id_pixel.
 #' @param variable variable to interpolate
 #' @param coordinates_names names of the coordinates (longitude and latitude)
 #' @param lon_range longitude range (min, max)
 #' @param lat_range latitude range (min, max)
 #' @param step step between longitude and latitude vectors
-#' @importFrom dplyr %>% select_ distinct filter mutate_ tbl_df bind_rows
-#' @importFrom sp coordinates gridded spplot
+#' @importFrom dplyr %>% select_ distinct filter mutate_ tbl_df bind_rows first
+#' @importFrom sp coordinates gridded
 #' @importFrom gstat idw
 #' @importFrom lazyeval interp
 #' @return a dplyr dataframe
 #' @export
 #'
-interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordinates_names, lon_range, lat_range, step)
+interpolate_single_grid_multi_day <- function(df, unique_id = "id_date", variable, coordinates_names, lon_range, lat_range, step)
 {
     # Count the number of days/month to interpolate
-    days <- df %>% select_(unique_id) %>% distinct() %>% nrow()
+    days <- df %>% select_(unique_id) %>% distinct() %>% unlist()
+    names(days) <- NULL
     # Output list
     out_lst <- list()
 
@@ -72,28 +77,24 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
     idw_formula <- as.formula(paste(variable, 1, sep=" ~ "))
 
     # Start to interpolate each date
-    for(i in 1:days)
+    for(i in days)
     {
         # Select data from the ith date
         day_data <- df %>% filter_(interp(~x == y, x = as.name(unique_id), y = i)) %>% na.omit()
+        # Set aside date for later mutate call
+        day_date <- day_data %>% select(date) %>% distinct() %>% first()
+        # Delete date from df
+        day_data <- day_data %>% select(-date)################################################
 
         # Set aside variables common to each date (id_date, month, year)
         other_vars <- day_data %>%
-            select_(.dots = as.list(setdiff(names(df), c(coordinates_names, variable)) )) %>%
+            select_(.dots = as.list(setdiff(names(day_data), c(coordinates_names, variable)) )) %>%
             distinct() %>%
             as.list()
         # Set coordinates
         sp::coordinates(day_data) = ~ lon + lat
         # Interpolate using idw
         idw_out <- idw(formula = idw_formula, locations = day_data, newdata = grd, debug.level = 0)
-
-        ###############################
-        # Printing plot. Achtung: this will print 365 plots!!!
-        #png(filename=paste("/home/mich/pictures_qnet/2002/picture_",i,".png",sep=""))
-        #a <- spplot(idw["var1.pred"], main = "Qnet inverse distance weighted interpolations 2002")
-        #print(a)
-        #dev.off()
-        ################################
 
         # Formatting output as dataframe
         idw_output <- as.data.frame(idw_out)
@@ -102,7 +103,8 @@ interpolate_single_grid <- function(df, unique_id = "id_date", variable, coordin
         # Format output
         idw_output <- tbl_df(idw_output) %>%
             select_(coordinates_names[1], coordinates_names[2], variable) %>%
-            mutate_(.dots = other_vars)
+            mutate_(.dots = other_vars) %>%
+            mutate(date = day_date)
         # Assign output to list
         out_lst[[i]] <- idw_output
     }
