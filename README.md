@@ -10,6 +10,10 @@ The package provides the following functions:
 ####  Functions for loading geographical .nc data easily and quickly in a nice dataframe
 
 - A set of functions for loading and extracting geographical data from .nc files.
+- A set of functions for loading geographical data with different frequency stored in .nc files.
+
+#### Functions for data cleaning and descriptive statistics
+
 - A set of functions for cleaning the data and calculating any user-defined descriptive statistics/index.
 
 #### K-mean unsupervised analysis functions
@@ -24,6 +28,10 @@ The package provides the following functions:
 
 - A set of functions for loading sets of yearly .csv files grouped in local folders.
 - A set of functions for fitting a random forest model, getting information from the fitted model, predicting and plotting predictions in a geographical map.
+
+#### Geographical data manipulating functions
+
+- A set of functions for changing (increasing or decreasing) the resolution of geographical data.
 
 ---
 
@@ -44,6 +52,7 @@ Requires the following packages:
 - stringi
 - sp
 - gstat
+
  
  ---
  
