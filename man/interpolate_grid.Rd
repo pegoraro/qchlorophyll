@@ -5,7 +5,8 @@
 \title{Interpolate a list of dplyr dataframes}
 \usage{
 interpolate_grid(data_list, reference_df, variable, unique_id = "id_date",
-  step = 0.25, coordinates_names = c("lon", "lat"))
+  step = 0.25, coordinates_names = c("lon", "lat"),
+  date_variable_name = "date")
 }
 \arguments{
 \item{data_list}{a list of dplyr dataframes to interpolate}
@@ -23,6 +24,8 @@ Furthermore, the id id_pixel loses its meaning when changing the resolution of t
 \item{step}{step (resolution) in the longitude-latitude grid. Set to 0.25 by default.}
 
 \item{coordinates_names}{names of the coordinates (longitude and latitude).}
+
+\item{date_variable_name}{name of the date variable. Character. Defaults to "date"}
 }
 \value{
 a dplyr dataframe

@@ -11,10 +11,11 @@
 #' Furthermore, the id id_pixel loses its meaning when changing the resolution of the data.
 #' @param step step (resolution) in the longitude-latitude grid. Set to 0.25 by default.
 #' @param coordinates_names names of the coordinates (longitude and latitude).
+#' @param date_variable_name name of the date variable. Character. Defaults to "date"
 #' @return a dplyr dataframe
 #' @export
 #'
-interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_date", step = 0.25, coordinates_names = c("lon", "lat"))
+interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_date", step = 0.25, coordinates_names = c("lon", "lat"), date_variable_name = "date")
 {
     # Determine lon and lat range and step
     lon_range <- as.numeric(c(min(reference_df[coordinates_names[1]]), max(reference_df[coordinates_names[1]])))
@@ -30,7 +31,8 @@ interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_
                              coordinates_names = coordinates_names,
                              lon_range = lon_range,
                              lat_range = lat_range,
-                             step = step)
+                             step = step,
+                             date_variable_name = date_variable_name)
 
     # Print status
     print("Done interpolating data frames. Stacking data frames row wise...")
@@ -54,6 +56,7 @@ interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_
 #' @param lon_range longitude range (min, max)
 #' @param lat_range latitude range (min, max)
 #' @param step step between longitude and latitude vectors
+#' @param date_variable_name name of the date variable. Character. Defaults to "date"
 #' @importFrom dplyr %>% select_ distinct filter mutate_ tbl_df bind_rows first
 #' @importFrom sp coordinates gridded
 #' @importFrom gstat idw
@@ -61,7 +64,7 @@ interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_
 #' @return a dplyr dataframe
 #' @export
 #'
-interpolate_single_grid_multi_day <- function(df, unique_id = "id_date", variable, coordinates_names, lon_range, lat_range, step)
+interpolate_single_grid_multi_day <- function(df, unique_id = "id_date", variable, coordinates_names, lon_range, lat_range, step, date_variable_name)
 {
     # Count the number of days/month to interpolate
     days <- df %>% select_(unique_id) %>% distinct() %>% unlist()
@@ -84,7 +87,7 @@ interpolate_single_grid_multi_day <- function(df, unique_id = "id_date", variabl
         # Set aside date for later mutate call
         day_date <- day_data %>% select(date) %>% distinct() %>% first()
         # Delete date from df
-        day_data <- day_data %>% select(-date)################################################
+        day_data <- day_data %>% select_(paste("-", date_variable_name))
 
         # Set aside variables common to each date (id_date, month, year)
         other_vars <- day_data %>%

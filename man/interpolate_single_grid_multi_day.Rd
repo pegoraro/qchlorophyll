@@ -7,7 +7,7 @@ This function interpolates every datagrid day by day (or month by month in case
 of monthly observations)}
 \usage{
 interpolate_single_grid_multi_day(df, unique_id = "id_date", variable,
-  coordinates_names, lon_range, lat_range, step)
+  coordinates_names, lon_range, lat_range, step, date_variable_name)
 }
 \arguments{
 \item{df}{a dplyr dataframe to interpolate}
@@ -23,6 +23,8 @@ interpolate_single_grid_multi_day(df, unique_id = "id_date", variable,
 \item{lat_range}{latitude range (min, max)}
 
 \item{step}{step between longitude and latitude vectors}
+
+\item{date_variable_name}{name of the date variable. Character. Defaults to "date"}
 }
 \value{
 a dplyr dataframe
