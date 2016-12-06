@@ -237,3 +237,60 @@ select_filenames_by_date <- function(file_names, from, to, date_format)
     }
     return(selected_file_names)
 }
+
+################################################################################
+#' This function is used to crop a selected area from a list of dataframes of
+#' geographical observations
+#'
+#' @param df_list a list of dplyr dataframe
+#' @param lower_left_lat_lon lower left corner latitude and longitude of the selected area. Numeric vector.
+#' Example c(52.00, -65.00)
+#' @param upper_right_lat_lon upper right corner latitude and longitude of the selected area.
+#' Numeric vector. Example: c(67.00, -42.00)
+#' @importFrom dplyr filter
+#' @return Returns a list of dplyr dataframes
+#'
+crop_selected_area <- function(df_list, lower_left_lat_lon, upper_right_lat_lon)
+{
+    # Filter out the selected geographical area
+    df_list_out <- lapply(df_list, FUN = function(x){
+        y <- filter(x, lat >= lower_left_lat_lon[1] & lat <= upper_right_lat_lon[1] & lon >= lower_left_lat_lon[2] & lon <= upper_right_lat_lon[2])
+        return(y)
+    })
+    # Return
+    return(df_list_out)
+}
+
+################################################################################
+#' This function is used to assign an id to the interpolated obsevartions based on
+#' the reference dataframe used in the interpolation process.
+#'
+#' This function should be used as the last step of the following process:
+#' 1) Data is loaded in raw form using one of the available options (load_all_as_list or
+#' load_nc_with_time).
+#' 3) If the loading process is performed using load_all_as_list, cropping of the selected
+#' geographical area can be then performed using the crop_selected_area function. In case the loading
+#' process is perfomed with the function load_nc_with_time the cropping is performed at load time.
+#' 2) Interpolation is performed to obtain a different resolution of the spatial images based
+#' on a given reference dataframe.
+#' 3) The function assign_id_from_reference can be finally used to match the id_pixel in the reference
+#' dataframe to each pair of longitude and latitude.
+#'
+#' @param df a dplyr dataframe to be assigned an id according to a
+#' reference dataframe.
+#' @param reference_df dataframe containing at least the following variables:
+#' longitude, latitude and id_pixel (a unique identifier for each pixel).
+#' @param coordinates names of spatial coordinates latitude and longitude in the reference dataframe
+#' @param id_name name of the unique identifier in the reference dataframe
+#' @importFrom dplyr select full_join
+#' @return Returns a dplyr dataframe
+#'
+assign_id_from_reference <- function(df, reference_df, coordinates = c("lon", "lat"), id_name = "id_pixel")
+{
+    # Select relevant variables only
+    reference_df <- select_(.dots = as.list(c(coordinates, id_name)))
+    # Join by coordinates
+    df_out <- full_join(df, reference_df, by = coordinates)
+    # Return
+    return(df_out)
+}

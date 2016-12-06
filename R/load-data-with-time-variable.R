@@ -1,10 +1,17 @@
 ################################################################################
-#' Load all .nc files to be resized as a list in a given local path
+#' Load .nc files that contain a time variable.
 #'
-#' Note: these files contain a time variable. They represent observations of a
-#' certain variable with a given frequency. The variable "time" defines the name of
-#' the sampling frequency variable. The function assumes that the data has a daily
-#' frequency. If the frequency is monthly, please set the monthy variable to TRUE.
+#' Load all .nc files as a list in a given local path and resize them while loading.
+#'
+#' Note: these function is used to load .nc files containing a time variable.
+#' They represent observations of a certain variable with a given frequency.
+#' The variable "time" defines the name of the sampling frequency variable.
+#' The function assumes that the data has a daily frequency.
+#' If the frequency is monthly, please set the monthy variable to TRUE.
+#'
+#' Due to the size of such files, immediate cropping of the selected geographical area is performed
+#' at load time. Note that the size of the area should be specified in the arguments lower_left_lon_lat
+#' and upper_right_lon_lat. If these arguments are not specified, defaults will be used.
 #'
 #' Dates are assumed to begin from the 1st of January. If the dates are in the format "hours"
 #' from a given date", please specify the starting date in the format "yyyy-mm-dd". Please note
@@ -29,7 +36,7 @@
 #' @return a list of dplyr dataframes
 #' @export
 #'
-load_nc_to_resize <- function(path, from = NULL, to = NULL, variables = c("qnet"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), time_variable = "time", lower_left_lat_lon = c(52.00, -65.00), upper_right_lat_lon = c(67.00, -42.00), monthly = FALSE, date_origin = NULL)
+load_nc_with_time <- function(path, from = NULL, to = NULL, variables = c("qnet"), coordinates = c("lon", "lat"), spare_coordinates = c("longitude", "latitude"), time_variable = "time", lower_left_lat_lon = c(52.00, -65.00), upper_right_lat_lon = c(67.00, -42.00), monthly = FALSE, date_origin = NULL)
 {
     # Load file names from path. Select only .nc files
     file_names <- list.files(path = path, pattern = "\\.nc$")

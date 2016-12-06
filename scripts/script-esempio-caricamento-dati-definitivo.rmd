@@ -1,0 +1,231 @@
+---
+title: "Guida definitiva al caricamento dati"
+author: "Michy Alice"
+date: "November 19, 2016"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(out.height="300px")
+knitr::opts_chunk$set(out.width="300px")
+knitr::opts_chunk$set(fig.align = "center")
+#knitr::opts_chunk$set(fig.height = 6, fig.width=5)
+```
+
+## Introduzione: caricamento pacchetto.
+
+Il seguente script funziona con qchlorophyll versione 1.2 o superiore.
+
+Installazione pacchetto:
+
+```{r, eval=FALSE}
+install.packages("/home/qchlorophyll_1.2.tar.gz", repos = NULL, type = "source")
+require(qchlorophyll)
+```
+
+Di seguito un procedimento guidato al caricamento dati, l'interpolazione e l'assegnazione di un id pixel.
+
+L'*input* del processo sono i file .nc e un dataframe di riferimento contenente longitudine, latitudine e l'id pixel.
+
+L'*output* del processo e' un unico dataframe contenente longitudine, latitudine, id pixel e le variabili caricate.
+
+> Nota: longitudine e latitudine nel dataframe di output, a patto di scegliere la stessa risoluzione, saranno esattamente quelle del dataframe di riferimento.
+
+Il procedimento e' strutturato nei seguenti step:
+
+- Caricamento dati da file.
+- Ritaglio della zona di lavoro.
+- Aumento/diminuzione della risoluzione tramite interpolazione.
+- Assegnazione id pixel sulla base del dataframe di riferimento.
+- Unione dei dati.
+
+---
+
+# Caricamento dati
+
+I dati sono stati raggruppati in due macrocategorie:
+
+- File .nc contenenti un rilevamento per pixel di una variabile per un certo intervallo temporale. Questi file saranno denominati in seguito come "file nc con frequenza giornaliera" nel caso in cui il file .nc caricato contenga 1 osservazione per ogni giorno per 365 giorni (numero di pixel x 365 osservazioni in totale per file) oppure "file nc con frequenza mensile" nel caso in cui il file .nc caricato contenga una osservazione per ogni mese dell'anno per 12 mesi (numero di pixel x 12 osservazioni in totale per file).
+- File .nc contenenti un rilevamento per pixel per la sola data indicata nel nome del file (numero di pixel x 1 osservazioni in totale per file).
+
+L'output delle funzioni di caricamento dati (*load_all_as_list* e *load_nc_with_time*) è sempre una lista contenente un dataframe per ogni file caricato.
+
+Le funzioni per il caricamento dati ricavano l'anno di riferimento delle osservazioni dal nome del file (il nome del file deve quindi contenere un numero di 4 cifre).
+
+## Caricamento dati con frequenza giornaliera o mensile.
+
+Le funzioni per il caricamento dati ricavano l'anno di riferimento delle osservazioni dal nome del file e, se non è specificato diversamente (vedere sotto), assumono come data iniziale il primo gennaio dell'anno di riferimento.
+
+### File nc con frequenza giornaliera
+
+Selezionare la directory contenente i file .nc che si desidera caricare
+
+```{r, eval=FALSE}
+setwd("/home/mich/Dropbox/cartella_condivisa_linux/quantide/packages_R/qchlorophyll_/dati/nuovo_lavoro/NHF/daily")
+```
+
+Utilizzare la funzione *load_nc_with_time* senza specificare nessuna data per caricare tutti i file.
+
+- E' necessario specificare la variabile da estrarre.
+- E' possibile estrarre anche solo alcuni anni specificando gli argomenti *from* e *to*.
+- Il ritaglio dell'area desiderata avviene immediatamente prima del caricamento allo scopo di risparmiare memoria. Specificare l'area geografica da ritagliare attraverso i parametri *lower_left_lat_lon* e *upper_right_lat_lon*
+- Di default, la variabile tempo contenuta nel file .nc è chiamata "time" (argomento time_variable)
+- Verificare gli altri valori di default della funzione con *?load_nc_with_time*.
+
+```{r, eval=FALSE}
+path <- getwd()
+
+# Estrazione di tutti i dati giornalieri dal 1998 al 2009
+dati_giornalieri <- load_nc_with_time(path = path, variables = c("qnet"))
+
+# Estrazione dei dati giornalieri dal 2000 al 2009 (inclusi)
+dati_giornalieri <- load_nc_with_time(path = path,
+                                      from = 2000,
+                                      to = 2009,
+                                      variables = c("qnet"),
+                                      lower_left_lat_lon = c(52, -65),
+                                      upper_right_lat_lon = c(67, -42))
+```
+
+### File nc con frequenza mensile
+
+Per i dati mensili, quando si effettua il caricamento con *load_nc_with_time* è necessario specificare la frequenza mensile fissando l'argomento *monthly* al valore *TRUE*. Valgono le altre considerazioni fatte per i file con frequenza giornaliera. Di seguito un breve esempio:
+
+```{r, eval=FALSE}
+setwd("/home/mich/Dropbox/cartella_condivisa_linux/quantide/packages_R/qchlorophyll_/dati/nuovo_lavoro/NHF/monthly")
+path <- getwd()
+
+# Estrazione di tutti i dati mensili
+dati_mensili <- load_nc_with_time(path = path,
+                                  variables = c("qnet"),
+                                  lower_left_lat_lon = c(52, -65),
+                                  upper_right_lat_lon = c(67, -42),
+                                  monthly = TRUE)
+
+# Estrazione dei dati mensili dal 2000 al 2009 (inclusi)
+dati_mensili <- load_nc_with_time(path = path,
+                                  from = 2000,
+                                  to = 2009,
+                                  variables = c("qnet"),
+                                  lower_left_lat_lon = c(52, -65),
+                                  upper_right_lat_lon = c(67, -42),
+                                  monthly = TRUE)
+```
+
+### File nc con frequenza giornaliera e con data in formato "ore da data di riferimento"
+
+Nel caso dei file shtfl.nc (file nc con frequenza giornaliera) la data è fornita nel formato "ore trascorse da una data di riferimento". La data di riferimento in questione è 1800-01-01 (formato: yyyy-mm-dd). 
+
+La data di riferimento va specificata nella funzione *load_nc_with_time* come segue:
+
+```{r, eval=FALSE}
+setwd("/home/mich/Dropbox/cartella_condivisa_linux/quantide/packages_R/qchlorophyll_/dati/nuovo_lavoro/NHF/shf")
+path <- getwd()
+
+# Caricamento di tutti i dati giornalieri shtfl
+dati_giornalieri_shtfl <- load_nc_with_time(path = path,
+                                            variables = c("shtfl"),
+                                            lower_left_lat_lon = c(52, -65),
+                                            upper_right_lat_lon = c(67, -42),
+                                            date_origin = "1800-01-01")
+
+# ATTENZIONE: specificare la date_origin SOLO se è necessario e si è sicuri che il formato della data nel file .nc sia "ore trascorse da una data di riferimento". In caso queste ipotesi non siano verificate, la funzione porterà a termine il suo compito, restituendo dei valori arbitrari di data, mese e anno.
+```
+
+**Nota 1:** Prestare attenzione alla directory di lavoro. La funzione di caricamento è abbastanza generale da non mostrare errori (oppure mostrare solo avvisi) nel caso in cui si carichino dati con frequenza mensile ma senza specificarlo, oppure non si specifichi la data di riferimento qualora sia necessario. Chiaramente in tali casi l'output non sarà affidabile.
+
+### Caricamento file con rilevazione singola
+
+Per i file contenenti una singola rilevazione (ogni file contiene una singola rilevazione e quindi un numero di osservazioni pari al numero pixel), la funzione da utilizzare per il caricamento e' *load_all_as_list* come segue
+
+```{r, eval=FALSE}
+nc_files_path <- "/home/data_nc/CHL8_D"
+# Carico file .nc ed estraggo CHL1_mean
+dati_giorno_singolo <- load_all_as_list(path = nc_files_path, variables = c("CHL1_mean"))
+```
+
+Ovviamente si applicano tutte le considerazioni fatte per la funzione *load_all_as_list* nei primi script di esempio forniti.
+
+---
+
+# Ritaglio zona di lavoro
+
+Per i file caricati attraverso la funzione *load_nc_with_time* il ritaglio della zona di lavoro e' effettuato durante il caricamento per questioni tecniche legate al risparmio di memoria utilizzata.
+
+Per quanto riguarda invece i file caricati con la funzione *load_all_as_list* il ritaglio della zona di lavoro deve essere effettuato dopo il caricamento attraverso la funzione *crop_selected_area* utilizzando DIRETTAMENTE l'output di *load_all_as_list* come segue
+
+```{r, eval=FALSE}
+nc_files_path <- "/home/data_nc/CHL8_D"
+# Carico file .nc ed estraggo CHL1_mean
+dati_giorno_singolo <- load_all_as_list(path = nc_files_path, variables = c("CHL1_mean"))
+# Ritaglio area di lavoro. Vedere la documentazione della funzione per ulteriori informazioni.
+nc_cropped <- crop_selected_area(dati_giorno_singolo, lower_left_lon_lat = c(1,2), upper_right_lat_lon=(3,4))
+```
+
+La funzione *crop_selected_area* ritorna una lista di dataframe dove ogni dataframe e' stato ridotto alla sola zona di lavoro interessata. L'output di questa funzione puo' essere passato direttamente alle funzioni interpolanti per l'aumento/diminuzione della risoluzione.
+
+Nota: la funzione **assign_id_and_melt** NON deve essere utilizzata in questo caso siccome effettuando l'interpolazione si va a modificare il numero di pixel e di conseguenza non ha senso assegnare un id pixel prima di tale procedimento. L'id pixel verra' quindi assegnato dopo il procedimento di interpolazione, sulla base di un dataframe di riferimento (vedere sotto).
+
+---
+
+# Interpolazione (aumento risoluzione dei file)
+
+Di seguito l'aumento di risoluzione sui dati caricati.
+
+L'aumento di risoluzione viene effettuato con l'algoritmo [inverse distance weighting](https://en.wikipedia.org/wiki/Inverse_distance_weighting) in modo da garantire che i valori stimati siano entro il massimo e il minimo dei valori effettivi noti. E' possibile cambiare l'algoritmo utilizzato (vedere documentazione del pacchetto **gstat**)
+
+Il procedimento non dipende dalla frequenza delle osservazioni per cui è identico sia che si tratti di dati mensili, giornalieri oppure annuali. Si rende però necessario specificare il nome della variabile da interpolare (qnet oppure shtfl negli esempi).
+
+Il dataframe di riferimento deve contenere almeno le variabili longitudine e latitudine (lon e lat). Il parametro *step* determina il livello di risoluzione. Si assume che longitudine e latitudine siano equispaziate di un valore pari al parametro *step*. Vedere la variabile *grd* per un esempio. Consiglio di non fissare *step* a valori troppo bassi (ossia non fissare una risoluzione troppo elevata). L'interpolazione è effettuata giorno per giorno e nonostante sia relativamente veloce, il procedimento è abbastanza oneroso in termini di tempo proprio per la necessità di lavorare su dati giornalieri ad ogni interpolazione (le interpolazioni effettuate sono 365 per il numero di file caricati). Per i dati mensili i tempi sono notevolmente più corti siccome le interpolazioni da effettuare sono solo 12 per il numero di file caricati.
+
+**Nota 1:** Qualora l'obiettivo sia quello di unire tutte le osservazioni in un unico dataframe e poi assegnare ad ogni pixel un id corrispondente a quello nel dataframe di riferimento, fissare il parametro step ad un valore pari alla differenza in valore assoluto tra i valori di longitudine (o latitudine) del dataframe di riferimento. Cosi' facendo si otterra' una griglia di pixel identica a quella di riferimento.
+
+La funzione *interpolate_grid* restituisce un dataframe dplyr.
+
+```{r, eval=FALSE}
+# Interpolation test
+
+# Dataframe di riferimento (deve contenere almeno le variabili lon e lat)
+# lon lat range (x, y)
+x_range <- as.numeric(c(-65, -42))
+y_range <- as.numeric(c(52, 67))
+step_ <- 0.25
+# Reference dataframe
+ref_grd <- expand.grid(lon = seq(from = x_range[1], to = x_range[2], by = step_), lat = seq(from = y_range[1], to = y_range[2], by = step_))
+
+# Interpolazione
+df_interpolato_giornalieri <- interpolate_grid(dati_giornalieri, variable = "qnet", step = 0.25, reference_df = ref_grd)
+df_interpolato_mensili <- interpolate_grid(dati_mensili, variable = "qnet", step = 0.25, reference_df = ref_grd)
+df_interpolato_giornalieri_shftl <- interpolate_grid(dati_giornalieri_shtfl, variable = "shftl", step = 0.25, reference_df = ref_grd)
+df_interpolato_giorno_singolo <- interpolate_grid(dati_giorno_singolo, variable = "CHL1mean", step = 0.25, reference_df = ref_grd)
+```
+
+---
+
+#Assegnazione id pixel sulla base del dataframe di riferimento
+
+Dopo l'interpolazione e' possibile assegnare un id pixel a ciascun pixel interpolato utilizzando la funzione *assign_id_from_reference*. Al termine di questa operazione, ogni pixel nel dataframe interpolato sara' associato al corrispondente id pixel nel dataframe di riferimento
+
+```{r, eval=FALSE}
+# Nota: ref_grd DEVE contenere una variabile id_pixel unica per ogni coppia di longitudine e latitudine che verra' usata come identificativo univoco per ciascun pixel
+out_df1 <- assign_id_from_reference(df_interpolato_giornalieri, ref_grd, coordinates = c("lon", "lat"), id_name = "id_pixel")
+out_df2 <- assign_id_from_reference(df_interpolato_giornalieri_shftl, ref_grd, coordinates = c("lon", "lat"), id_name = "id_pixel")
+```
+
+---
+
+#Unione dei dati
+
+A questo punto, dopo avere caricato diversi file, aver effettuato l'interpolazione e aver assegnato l'id pixel, si avranno disponibili nell'environment R tanti dataframe quante sono le chiamate effettuate alle funzioni di caricamento. Ossia, si avra' un dataframe per ogni chiamata.
+
+L'ultima operazione da effettuare e' l'unione di tutti questi dataframe in un singolo dataframe che poi puo' essere utilizzato per analisi varie.
+
+L'unione dei dati avviene per 
+
+```{r, eval=FALSE}
+
+```
+
+Il dataframe *final_out* e' pronto per essere analizzato.
+
+---

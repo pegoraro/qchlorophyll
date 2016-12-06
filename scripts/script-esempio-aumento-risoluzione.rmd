@@ -2,7 +2,7 @@
 title: "Aumento risoluzione"
 author: "Michy Alice"
 date: "November 19, 2016"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include = FALSE}
@@ -55,22 +55,22 @@ Selezionare la directory contenente i file .nc che si desidera caricare
 setwd("/home/mich/Dropbox/cartella_condivisa_linux/quantide/packages_R/qchlorophyll_/dati/nuovo_lavoro/NHF/daily")
 ```
 
-Utilizzare la funzione *load_nc_to_resize* senza specificare nessuna data per caricare tutti i file.
+Utilizzare la funzione *load_nc_with_time* senza specificare nessuna data per caricare tutti i file.
 
 - E' necessario specificare la variabile da estrarre.
 - E' possibile estrarre anche solo alcuni anni specificando gli argomenti *from* e *to*.
 - Il ritaglio dell'area desiderata avviene immediatamente prima del caricamento allo scopo di risparmiare memoria. Specificare l'area geografica da ritagliare attraverso i parametri *lower_left_lat_lon* e *upper_right_lat_lon*
 - Di default, la variabile tempo contenuta nel file .nc è chiamata "time" (argomento time_variable)
-- Verificare gli altri valori di default della funzione con *?load_nc_to_resize*.
+- Verificare gli altri valori di default della funzione con *?load_nc_with_time*.
 
 ```{r, eval=FALSE}
 path <- getwd()
 
 # Estrazione di tutti i dati giornalieri dal 1998 al 2009
-dati_giornalieri <- load_nc_to_resize(path = path, variables = c("qnet"))
+dati_giornalieri <- load_nc_with_time(path = path, variables = c("qnet"))
 
 # Estrazione dei dati giornalieri dal 2000 al 2009 (inclusi)
-dati_giornalieri <- load_nc_to_resize(path = path,
+dati_giornalieri <- load_nc_with_time(path = path,
                                       from = 2000,
                                       to = 2009,
                                       variables = c("qnet"),
@@ -87,14 +87,14 @@ setwd("/home/mich/Dropbox/cartella_condivisa_linux/quantide/packages_R/qchloroph
 path <- getwd()
 
 # Estrazione di tutti i dati mensili
-dati_mensili <- load_nc_to_resize(path = path,
+dati_mensili <- load_nc_with_time(path = path,
                                   variables = c("qnet"),
                                   lower_left_lat_lon = c(52, -65),
                                   upper_right_lat_lon = c(67, -42),
                                   monthly = TRUE)
 
 # Estrazione dei dati mensili dal 2000 al 2009 (inclusi)
-dati_mensili <- load_nc_to_resize(path = path,
+dati_mensili <- load_nc_with_time(path = path,
                                   from = 2000,
                                   to = 2009,
                                   variables = c("qnet"),
@@ -105,14 +105,14 @@ dati_mensili <- load_nc_to_resize(path = path,
 
 ### Dati con la data in formato "ore da data di riferimento"
 
-Per i file shtfl.nc (dati con frequenza giornaliera) la data è fornita nel formato "ore trascorse da una data di riferimento". La data di riferimento in questione è 1800-01-01 (formato: yyyy-mm-dd). La data di riferimento va specificata nella funzione **load_nc_to_resize** come segue:
+Per i file shtfl.nc (dati con frequenza giornaliera) la data è fornita nel formato "ore trascorse da una data di riferimento". La data di riferimento in questione è 1800-01-01 (formato: yyyy-mm-dd). La data di riferimento va specificata nella funzione **load_nc_with_time** come segue:
 
 ```{r, eval=FALSE}
 setwd("/home/mich/Dropbox/cartella_condivisa_linux/quantide/packages_R/qchlorophyll_/dati/nuovo_lavoro/NHF/shf")
 path <- getwd()
 
 # Caricamento di tutti i dati giornalieri shtfl
-dati_giornalieri_shtfl <- load_nc_to_resize(path = path,
+dati_giornalieri_shtfl <- load_nc_with_time(path = path,
                                             variables = c("shtfl"),
                                             lower_left_lat_lon = c(52, -65),
                                             upper_right_lat_lon = c(67, -42),
