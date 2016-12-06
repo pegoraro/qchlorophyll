@@ -288,9 +288,31 @@ crop_selected_area <- function(df_list, lower_left_lat_lon, upper_right_lat_lon)
 assign_id_from_reference <- function(df, reference_df, coordinates = c("lon", "lat"), id_name = "id_pixel")
 {
     # Select relevant variables only
-    reference_df <- select_(.dots = as.list(c(coordinates, id_name)))
+    reference_df <- reference_df %>% select_(.dots = as.list(c(coordinates, id_name)))
     # Join by coordinates
-    df_out <- full_join(df, reference_df, by = coordinates)
+    df_out <- df %>% full_join(reference_df, by = coordinates)
     # Return
     return(df_out)
+}
+
+################################################################################
+#' This function is used for joining data together after an id pixel has been assigned
+#' to the data coming from the interpolation process.
+#'
+#' @param df_list list of loaded dataframes. A list of dplyr dataframe to join together.
+#' @param by variables to join by
+#' @importFrom dplyr full_join
+#' @return Returns a dplyr dataframe
+#'
+join_loaded_data <- function(df_list, by = c("lon", "lat", "id_pixel"))
+{
+    # Dataframe to output
+    out_df <- df_list[[1]]
+    for(i in 2:length(df_list))
+    {
+        # Join
+        out_df <- df_list[[i]] %>% full_join(out_df, by=by)
+    }
+    # Return
+    return(out_df)
 }

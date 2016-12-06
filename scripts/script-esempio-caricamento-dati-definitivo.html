@@ -262,6 +262,9 @@ y_range &lt;- as.numeric(c(52, 67))
 step_ &lt;- 0.25
 # Reference dataframe
 ref_grd &lt;- expand.grid(lon = seq(from = x_range[1], to = x_range[2], by = step_), lat = seq(from = y_range[1], to = y_range[2], by = step_))
+# Oppure esempio di dataframe di riferimento
+data(&quot;new_x&quot;)
+ref_grd &lt;- new_x
 
 # Interpolazione
 df_interpolato_giornalieri &lt;- interpolate_grid(dati_giornalieri, variable = &quot;qnet&quot;, step = 0.25, reference_df = ref_grd)
