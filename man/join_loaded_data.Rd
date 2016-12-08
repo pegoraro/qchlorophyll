@@ -5,18 +5,22 @@
 \title{This function is used for joining data together after an id pixel has been assigned
 to the data coming from the interpolation process.}
 \usage{
-join_loaded_data(df_list, by = c("lon", "lat", "id_pixel"))
+join_loaded_data(df_list, by = c("lon", "lat", "id_pixel", "id_date", "year"),
+  vars_to_remove = c("month"), date_name = "date")
 }
 \arguments{
 \item{df_list}{list of loaded dataframes. A list of dplyr dataframe to join together.}
 
 \item{by}{variables to join by}
+
+\item{vars_to_remove}{variables to remove before the join}
+
+\item{date_name}{name of the "date" variable. Date will be removed by default from the output.}
 }
 \value{
 Returns a dplyr dataframe
 }
 \description{
-This function is used for joining data together after an id pixel has been assigned
-to the data coming from the interpolation process.
+See the data loading guideline for more information on the join process.
 }
 

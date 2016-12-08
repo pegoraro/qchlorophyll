@@ -6,7 +6,7 @@
 the reference dataframe used in the interpolation process.}
 \usage{
 assign_id_from_reference(df, reference_df, coordinates = c("lon", "lat"),
-  id_name = "id_pixel")
+  id_name = "id_pixel", arrange_order = c("id_pixel", "id_date"))
 }
 \arguments{
 \item{df}{a dplyr dataframe to be assigned an id according to a
@@ -18,6 +18,8 @@ longitude, latitude and id_pixel (a unique identifier for each pixel).}
 \item{coordinates}{names of spatial coordinates latitude and longitude in the reference dataframe}
 
 \item{id_name}{name of the unique identifier in the reference dataframe}
+
+\item{arrange_order}{how to arrange the output? Default: by id_pixel, then by id_date.}
 }
 \value{
 Returns a dplyr dataframe

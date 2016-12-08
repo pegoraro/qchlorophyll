@@ -249,6 +249,7 @@ select_filenames_by_date <- function(file_names, from, to, date_format)
 #' Numeric vector. Example: c(67.00, -42.00)
 #' @importFrom dplyr filter
 #' @return Returns a list of dplyr dataframes
+#' @export
 #'
 crop_selected_area <- function(df_list, lower_left_lat_lon, upper_right_lat_lon)
 {
@@ -282,15 +283,17 @@ crop_selected_area <- function(df_list, lower_left_lat_lon, upper_right_lat_lon)
 #' longitude, latitude and id_pixel (a unique identifier for each pixel).
 #' @param coordinates names of spatial coordinates latitude and longitude in the reference dataframe
 #' @param id_name name of the unique identifier in the reference dataframe
-#' @importFrom dplyr select full_join
+#' @param arrange_order how to arrange the output? Default: by id_pixel, then by id_date.
+#' @importFrom dplyr select full_join arrange_
 #' @return Returns a dplyr dataframe
+#' @export
 #'
-assign_id_from_reference <- function(df, reference_df, coordinates = c("lon", "lat"), id_name = "id_pixel")
+assign_id_from_reference <- function(df, reference_df, coordinates = c("lon", "lat"), id_name = "id_pixel", arrange_order = c("id_pixel", "id_date"))
 {
     # Select relevant variables only
     reference_df <- reference_df %>% select_(.dots = as.list(c(coordinates, id_name)))
     # Join by coordinates
-    df_out <- df %>% full_join(reference_df, by = coordinates)
+    df_out <- df %>% full_join(reference_df, by = coordinates) %>% arrange_(arrange_order)
     # Return
     return(df_out)
 }
@@ -299,20 +302,33 @@ assign_id_from_reference <- function(df, reference_df, coordinates = c("lon", "l
 #' This function is used for joining data together after an id pixel has been assigned
 #' to the data coming from the interpolation process.
 #'
+#' See the data loading guideline for more information on the join process.
+#'
 #' @param df_list list of loaded dataframes. A list of dplyr dataframe to join together.
 #' @param by variables to join by
-#' @importFrom dplyr full_join
+#' @param vars_to_remove variables to remove before the join
+#' @param date_name name of the "date" variable. Date will be removed by default from the output.
+#' @importFrom dplyr left_join select_
 #' @return Returns a dplyr dataframe
+#' @export
 #'
-join_loaded_data <- function(df_list, by = c("lon", "lat", "id_pixel"))
+join_loaded_data <- function(df_list, by = c("lon", "lat", "id_pixel","id_date","year"), vars_to_remove = c("month"), date_name = "date")
 {
     # Dataframe to output
     out_df <- df_list[[1]]
+    # Query for vars to remove
+    vars_to_remove <- c(date_name, vars_to_remove)
+    query <- lapply(vars_to_remove, function(x) { paste("-", x, sep = "") })
+
+    # Loop
     for(i in 2:length(df_list))
     {
         # Join
-        out_df <- df_list[[i]] %>% full_join(out_df, by=by)
+        out_df <- df_list[[i]] %>% select_(.dots = query) %>% left_join(out_df, by = by)
     }
+
+    out_df <- out_df %>% select_(paste("-", date_name, sep = ""))
+
     # Return
     return(out_df)
 }

@@ -57,7 +57,7 @@ interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_
 #' @param lat_range latitude range (min, max)
 #' @param step step between longitude and latitude vectors
 #' @param date_variable_name name of the date variable. Character. Defaults to "date"
-#' @importFrom dplyr %>% select_ distinct filter mutate_ tbl_df bind_rows first
+#' @importFrom dplyr %>% select distinct filter filter_ mutate_ tbl_df bind_rows first
 #' @importFrom sp coordinates gridded
 #' @importFrom gstat idw
 #' @importFrom lazyeval interp
@@ -85,7 +85,7 @@ interpolate_single_grid_multi_day <- function(df, unique_id = "id_date", variabl
         # Select data from the ith date
         day_data <- df %>% filter_(interp(~x == y, x = as.name(unique_id), y = i)) %>% na.omit()
         # Set aside date for later mutate call
-        day_date <- day_data %>% select(date) %>% distinct() %>% first()
+        day_date <- day_data %>% select_(date_variable_name) %>% distinct() %>% first()
         # Delete date from df
         day_data <- day_data %>% select_(paste("-", date_variable_name))
 
