@@ -12,6 +12,7 @@
 #' @param step step (resolution) in the longitude-latitude grid. Set to 0.25 by default.
 #' @param coordinates_names names of the coordinates (longitude and latitude).
 #' @param date_variable_name name of the date variable. Character. Defaults to "date"
+#' @importFrom dplyr bind_rows
 #' @return a dplyr dataframe
 #' @export
 #'
@@ -57,14 +58,14 @@ interpolate_grid <- function(data_list, reference_df, variable, unique_id = "id_
 #' @param lat_range latitude range (min, max)
 #' @param step step between longitude and latitude vectors
 #' @param date_variable_name name of the date variable. Character. Defaults to "date"
-#' @importFrom dplyr %>% select distinct filter filter_ mutate_ tbl_df bind_rows first
+#' @importFrom dplyr %>% select distinct filter_ mutate_ tbl_df bind_rows first
 #' @importFrom sp coordinates gridded
 #' @importFrom gstat idw
 #' @importFrom lazyeval interp
 #' @return a dplyr dataframe
 #' @export
 #'
-interpolate_single_grid_multi_day <- function(df, unique_id = "id_date", variable, coordinates_names, lon_range, lat_range, step, date_variable_name)
+interpolate_single_grid_multi_day <- function(df, unique_id, variable, coordinates_names, lon_range, lat_range, step, date_variable_name)
 {
     # Count the number of days/month to interpolate
     days <- df %>% select_(unique_id) %>% distinct() %>% unlist()
