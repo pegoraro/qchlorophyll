@@ -324,10 +324,8 @@ join_loaded_data <- function(df_list, by = c("lon", "lat", "id_pixel","id_date",
     for(i in 2:length(df_list))
     {
         # Join
-        out_df <- df_list[[i]] %>% select_(.dots = query) %>% left_join(out_df, by = by)
+        out_df <- df_list[[i]] %>% select_(.dots = query) %>% inner_join(out_df, by = by)
     }
-
-    out_df <- out_df %>% select_(paste("-", date_name, sep = ""))
 
     # Return
     return(out_df)

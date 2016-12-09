@@ -168,11 +168,11 @@ Nota: la funzione **assign_id_and_melt** NON deve essere utilizzata in questo ca
 
 ---
 
-# Interpolazione (aumento risoluzione dei file)
+# Interpolazione (aumento/diminuzione risoluzione dei file)
 
-Di seguito l'aumento di risoluzione sui dati caricati.
+La funzione *interpolate_grid* realizza sia il processo di aumento che diminuzione della risoluzione, sulla base del dataframe di riferimento fornito.
 
-L'aumento di risoluzione viene effettuato con l'algoritmo [inverse distance weighting](https://en.wikipedia.org/wiki/Inverse_distance_weighting) in modo da garantire che i valori stimati siano entro il massimo e il minimo dei valori effettivi noti. E' possibile cambiare l'algoritmo utilizzato (vedere documentazione del pacchetto **gstat**)
+Il cambiamento di risoluzione viene effettuato con l'algoritmo [inverse distance weighting](https://en.wikipedia.org/wiki/Inverse_distance_weighting) in modo da garantire che i valori stimati siano entro il massimo e il minimo dei valori effettivi noti. E' possibile cambiare l'algoritmo utilizzato (vedere documentazione del pacchetto **gstat**)
 
 Il procedimento non dipende dalla frequenza delle osservazioni per cui è identico sia che si tratti di dati mensili, giornalieri oppure annuali. Si rende però necessario specificare il nome della variabile da interpolare (qnet oppure shtfl negli esempi).
 
@@ -220,15 +220,5 @@ out_df2 <- assign_id_from_reference(df_interpolato_giornalieri_shftl, ref_grd, c
 #Unione dei dati
 
 A questo punto, dopo avere caricato diversi file, aver effettuato l'interpolazione e aver assegnato l'id pixel, si avranno disponibili nell'environment R tanti dataframe quante sono le chiamate effettuate alle funzioni di caricamento. Ossia, si avra' un dataframe per ogni chiamata.
-
-L'ultima operazione da effettuare e' l'unione di tutti questi dataframe in un singolo dataframe che poi puo' essere utilizzato per analisi varie.
-
-L'unione dei dati avviene per 
-
-```{r, eval=FALSE}
-
-```
-
-Il dataframe *final_out* e' pronto per essere analizzato.
 
 ---
