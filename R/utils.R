@@ -297,36 +297,3 @@ assign_id_from_reference <- function(df, reference_df, coordinates = c("lon", "l
     # Return
     return(df_out)
 }
-
-################################################################################
-#' This function is used for joining data together after an id pixel has been assigned
-#' to the data coming from the interpolation process.
-#'
-#' See the data loading guideline for more information on the join process.
-#'
-#' @param df_list list of loaded dataframes. A list of dplyr dataframe to join together.
-#' @param by variables to join by
-#' @param vars_to_remove variables to remove before the join
-#' @param date_name name of the "date" variable. Date will be removed by default from the output.
-#' @importFrom dplyr left_join select_
-#' @return Returns a dplyr dataframe
-#' @export
-#'
-join_loaded_data <- function(df_list, by = c("lon", "lat", "id_pixel","id_date","year"), vars_to_remove = c("month"), date_name = "date")
-{
-    # Dataframe to output
-    out_df <- df_list[[1]]
-    # Query for vars to remove
-    vars_to_remove <- c(date_name, vars_to_remove)
-    query <- lapply(vars_to_remove, function(x) { paste("-", x, sep = "") })
-
-    # Loop
-    for(i in 2:length(df_list))
-    {
-        # Join
-        out_df <- df_list[[i]] %>% select_(.dots = query) %>% inner_join(out_df, by = by)
-    }
-
-    # Return
-    return(out_df)
-}

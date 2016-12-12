@@ -215,10 +215,6 @@ out_df1 <- assign_id_from_reference(df_interpolato_giornalieri, ref_grd, coordin
 out_df2 <- assign_id_from_reference(df_interpolato_giornalieri_shftl, ref_grd, coordinates = c("lon", "lat"), id_name = "id_pixel")
 ```
 
----
-
-#Unione dei dati
-
-A questo punto, dopo avere caricato diversi file, aver effettuato l'interpolazione e aver assegnato l'id pixel, si avranno disponibili nell'environment R tanti dataframe quante sono le chiamate effettuate alle funzioni di caricamento. Ossia, si avra' un dataframe per ogni chiamata.
+A questo punto, dopo avere caricato diversi file, aver effettuato l'interpolazione e aver assegnato l'id pixel, si avranno disponibili nell'environment R tanti dataframe quante sono le chiamate effettuate alle funzioni di caricamento.
 
 ---
