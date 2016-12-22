@@ -14,7 +14,7 @@ knitr::opts_chunk$set(fig.align = "center")
 
 ## Introduzione: caricamento pacchetto.
 
-Il seguente script funziona con qchlorophyll versione 1.2 o superiore.
+Il seguente script funziona con qchlorophyll versione 2.0 o superiore.
 
 Installazione pacchetto:
 
@@ -159,7 +159,7 @@ nc_files_path <- "/home/data_nc/CHL8_D"
 # Carico file .nc ed estraggo CHL1_mean
 dati_giorno_singolo <- load_all_as_list(path = nc_files_path, variables = c("CHL1_mean"))
 # Ritaglio area di lavoro. Vedere la documentazione della funzione per ulteriori informazioni.
-nc_cropped <- crop_selected_area(dati_giorno_singolo, lower_left_lon_lat = c(1,2), upper_right_lat_lon=(3,4))
+nc_cropped <- crop_selected_area(dati_giorno_singolo, lower_left_lat_lon = c(1,2), upper_right_lat_lon=(3,4))
 ```
 
 La funzione *crop_selected_area* ritorna una lista di dataframe dove ogni dataframe e' stato ridotto alla sola zona di lavoro interessata. L'output di questa funzione puo' essere passato direttamente alle funzioni interpolanti per l'aumento/diminuzione della risoluzione.
@@ -216,5 +216,39 @@ out_df2 <- assign_id_from_reference(df_interpolato_giornalieri_shftl, ref_grd, c
 ```
 
 A questo punto, dopo avere caricato diversi file, aver effettuato l'interpolazione e aver assegnato l'id pixel, si avranno disponibili nell'environment R tanti dataframe quante sono le chiamate effettuate alle funzioni di caricamento.
+
+---
+
+#Eliminazione zone di terra
+
+Per ciascun dataframe ottenuto, è possibile eliminare le zone di terra attraverso una maschera binaria.
+
+Se la maschera ha la stessa risoluzione dei file caricati, è possibile applicare direttamente la maschera, altrimenti è necessario ridimensionare anche la maschera.
+
+Procedendo per ordine, per caricare la maschera in R, utilizzare:
+
+```{r, eval=FALSE}
+msk <- load_mask(mask_file = "mask_25km.nc")
+```
+
+La funzione *load_mask* assume che il nome della variabile binaria all'interno del file maschera sia *mask_name = "lsmask"*.
+
+Se la risoluzione della maschera è uguale a quella dei file in uso, si può saltare al prossimo passaggio, altrimenti, è necessario allineare la risoluzione della maschera a quella del dataframe di riferimento:
+
+```{r, eval=FALSE}
+data(new_x)
+msk <- resize_mask(msk, reference_df = new_x, step = 0.25, plot_ = TRUE)
+```
+
+Nota: il parametro *step* deve essere identico a quello utilizzato nella funzione per cambiare la risoluzione ai dati, così come il data frame di riferimento.
+
+L'argomento *plot_ = TRUE* consente di ottenere un plot della maschera originale e di quella interpolata per una veloce ispezione "a vista" della bontà dell'interpolazione binaria. Consiglio di utilizzarlo sempre se si usano differenti tipi di maschera a diverse risoluzioni.
+
+La maschera ottenuta è pronta per essere applicata a un data frame oppure essere salvata per un successivo utilizzo.
+
+Utilizzando la funzione *apply_mask* si applica la maschera al dataframe prescelto per rimuovere i pixel di terra:
+```{r, eval=FALSE}
+data_without_earth_pixels <- apply_mask(data, msk)
+```
 
 ---
