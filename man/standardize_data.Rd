@@ -18,4 +18,3 @@ A dplyr dataframe
 This function is used to standardize the data before running the kmeans analysis function.
 The output of this function is a dataframe ready to be used for the kmeans analysis.
 }
-

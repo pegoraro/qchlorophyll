@@ -38,4 +38,3 @@ A list of all the .nc files loaded
 \description{
 Load all .nc files in a given local path
 }
-

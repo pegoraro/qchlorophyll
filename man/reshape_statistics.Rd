@@ -20,4 +20,3 @@ reshape_statistics(data, id = "id_pixel", key = "id_date",
 Given a list of variables and a dataframe, make a reshaped (from wide to long)
 dataframe for each variable and output a list of dataframes
 }
-

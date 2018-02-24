@@ -36,4 +36,3 @@ on a given reference dataframe.
 3) The function assign_id_from_reference can be finally used to match the id_pixel in the reference
 dataframe to each pair of longitude and latitude.
 }
-

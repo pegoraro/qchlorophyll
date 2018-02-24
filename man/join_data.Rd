@@ -20,4 +20,3 @@ join_data(multiple_year_data, single_year_data, m_year_join_by = c("lon",
 Join multiple year data by lon, lat and year
 Then join single year data by lon and lat
 }
-

@@ -34,4 +34,3 @@ This function loads a single .nc files and returns a dplyr dataframe of the extr
 # Load "data02022015.nc"
 # data_02022015 <- load_nc_file("~path/data02022015.nc", date_format = "dmy")
 }
-

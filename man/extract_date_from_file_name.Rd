@@ -40,4 +40,3 @@ it finds.
 2. Note that date format can be set (should it vary).
 3. If the date_format is not correct a NA is returned
 }
-

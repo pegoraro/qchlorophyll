@@ -37,4 +37,3 @@ a dplyr dataframe
 \description{
 Load nc files to be resized. Subfunction
 }
-

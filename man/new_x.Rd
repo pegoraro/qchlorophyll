@@ -16,4 +16,3 @@ data(new_x)
 
 }
 \keyword{datasets}
-

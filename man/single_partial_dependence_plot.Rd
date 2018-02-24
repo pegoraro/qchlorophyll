@@ -26,4 +26,3 @@ on the argument return_plot.
 \description{
 Plot a single partial dependence plot
 }
-

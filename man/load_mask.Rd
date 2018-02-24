@@ -20,4 +20,3 @@ a dplyr dataframe
 \description{
 Load the mask file as a data frame.
 }
-

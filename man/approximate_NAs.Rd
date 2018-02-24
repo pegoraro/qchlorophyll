@@ -33,4 +33,3 @@ The imputation method can be chosen by setting the meth parameter. For a list of
 all the available imputation methods available, please check the documentation of
 the mice::mice function (?mice::mice)
 }
-

@@ -24,4 +24,3 @@ by adding 2 units. Note that shift_amount is a list with specific names.}
 \description{
 Simply replace lon and lat with those in the reference dataframe
 }
-

@@ -57,4 +57,3 @@ Dates are assumed to begin from the 1st of January. If the dates are in the form
 from a given date", please specify the starting date in the format "yyyy-mm-dd". Please note
 that no other formats are accepted. See the parameter date_origin below.
 }
-

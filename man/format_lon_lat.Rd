@@ -22,4 +22,3 @@ Example: by default lon_lat_names = c("lon", "lat")}
 A brute force approach is used to match latitude and longitude pairs and the corrisponding value of
 variable.
 }
-

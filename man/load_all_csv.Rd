@@ -25,4 +25,3 @@ in its name where the only changing part is assumed to be the year. A character}
 This function loads a bunch of .csv files with identical structure and recurrent pattern
 into a single list. Each .csv file is assumed to have a recurrent pattern in its name.
 }
-

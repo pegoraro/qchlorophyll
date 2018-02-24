@@ -33,4 +33,3 @@ a dplyr dataframe
 \description{
 Interpolate a list of dplyr dataframes
 }
-

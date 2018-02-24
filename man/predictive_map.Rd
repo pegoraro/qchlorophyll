@@ -22,4 +22,3 @@ an average prediction is computed and plotted. Boolean}
 \description{
 Plot predictive map
 }
-

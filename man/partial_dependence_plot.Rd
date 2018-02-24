@@ -27,4 +27,3 @@ is TRUE, NULL is returned.
 \description{
 Partial dependence plot
 }
-

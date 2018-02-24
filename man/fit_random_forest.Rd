@@ -25,4 +25,3 @@ fit_random_forest(formula, data, ntree = 1000, na.action = na.omit,
 \description{
 Fit a random forest model
 }
-

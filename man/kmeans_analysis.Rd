@@ -27,4 +27,3 @@ An object of class kmeans
 \description{
 Note: this function takes as argument all the arguments used by the stats::kmeans function.
 }
-

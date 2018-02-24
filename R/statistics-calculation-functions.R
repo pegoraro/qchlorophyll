@@ -19,7 +19,7 @@
 #' @param groups variables to group by (ie to aggregate by). A list.
 #' @param id The main unique identifier (id_pixel for instance). A character.
 #' @param unique_id list of all the unique identifiers in the data you would like to keep. (By default: list("lat","lon", "id_pixel")). A list
-#' @importFrom dplyr group_by_ summarise_each_ select_ %>% distinct full_join funs_
+#' @importFrom dplyr group_by_ summarise_at select_ %>% distinct full_join funs_
 #' @return A dplyr data frame.
 #' @export
 #'
@@ -33,7 +33,7 @@ aggregate_statistics <- function(data, variable = "CHL1_mean", stat_funs = list(
     new_names <- c(as.vector(groups), names(stat_funs))
     #############################################
     # Stats calculation.
-    stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_each_(funs_(dots = stat_funs), variable) %>% setNames(new_names)
+    stats <- data %>% group_by_(.dots = dots_groups) %>% summarise_at(.vars = variable, .funs = funs_(dots = stat_funs)) %>% setNames(new_names)
     # Keep unique id
     stats <- data %>% select_(.dots = unique_id) %>% distinct() %>% full_join(stats, by = id)
     # Set statistics names as attributs

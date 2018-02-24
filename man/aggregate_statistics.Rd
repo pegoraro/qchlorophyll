@@ -38,4 +38,3 @@ A dplyr data frame.
 \description{
 This function groups the observations and calculates a series of statistics.
 }
-

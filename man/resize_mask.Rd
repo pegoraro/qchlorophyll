@@ -24,4 +24,3 @@ a dplyr dataframe
 \description{
 Resize the mask
 }
-

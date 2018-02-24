@@ -42,4 +42,3 @@ set the amount of the shifting.
 
 If both reformat and shift are set to FALSE, the df_list is simply returned without any changes.
 }
-

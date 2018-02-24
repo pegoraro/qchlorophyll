@@ -19,4 +19,3 @@ variable_importance_plot(rf_model, title = "Variable importance plot",
 \description{
 Plot variable importance
 }
-

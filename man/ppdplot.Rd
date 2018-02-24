@@ -41,4 +41,3 @@ ppdplot(x, pred.data, x.var, which.class, w, plot = TRUE, add = FALSE,
 Plot partial dependence plots. A revised version of the official function.
 The function had to be revised due to the use of NSE on the x.var argument.
 }
-
